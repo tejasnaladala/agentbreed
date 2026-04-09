@@ -280,20 +280,20 @@ _DECISION_HEURISTICS: list[str] = [
 
 _CALIBRATION_RULES: list[str] = [
     (
-        "After forming an initial estimate, apply the calibration nudge: move 10%% toward "
+        "After forming an initial estimate, apply the calibration nudge: move 10% toward "
         "the base rate to counteract overconfidence."
     ),
     (
-        "Check your estimate against Tetlock's calibration curve: 70%% predictions should "
-        "resolve true about 70%% of the time. Adjust if your track record diverges."
+        "Check your estimate against Tetlock's calibration curve: 70% predictions should "
+        "resolve true about 70% of the time. Adjust if your track record diverges."
     ),
     (
-        "Apply the extremeness aversion correction: if your estimate is above 90%% or "
-        "below 10%%, justify each percentage point beyond 80%%/20%%."
+        "Apply the extremeness aversion correction: if your estimate is above 90% or "
+        "below 10%, justify each percentage point beyond 80%/20%."
     ),
     (
-        "Use the three-interval check: express uncertainty as a 50%% confidence interval "
-        "first, then widen to 90%%. If the 90%% interval is narrower than 3x the 50%%, "
+        "Use the three-interval check: express uncertainty as a 50% confidence interval "
+        "first, then widen to 90%. If the 90% interval is narrower than 3x the 50%, "
         "you are overconfident."
     ),
 ]

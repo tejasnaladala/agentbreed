@@ -1,8 +1,8 @@
 """Click-based CLI for the agentbreed evolutionary breeding framework.
 
 Provides commands for initialising projects, running breeding loops,
-inspecting results, tracing lineage, diffing generations, exporting
-genomes, and launching the web UI.
+inspecting results, tracing lineage, diffing generations, and exporting
+genomes.
 """
 
 from __future__ import annotations
@@ -52,13 +52,8 @@ try:
 except ImportError:
     pass
 
-_WEB_AVAILABLE = False
-try:
-    import uvicorn  # noqa: F401
 
-    _WEB_AVAILABLE = True
-except ImportError:
-    pass
+# Web UI removed -- breed is terminal-only.
 
 
 # ---------------------------------------------------------------------------
@@ -486,16 +481,14 @@ def _build_rich_display(
 @click.option("--generations", type=int, default=None, help="Override generation count.")
 @click.option("--population", type=int, default=None, help="Override population size.")
 @click.option("--headless", is_flag=True, help="JSON-only output (no Rich display).")
-@click.option("--serve", is_flag=True, help="Start web UI in background.")
 def run(
     config: str,
     generations: int | None,
     population: int | None,
     headless: bool,
-    serve: bool,
 ) -> None:
     """Run the evolutionary breeding loop."""
-    asyncio.run(_run_async(config, generations, population, headless, serve))
+    asyncio.run(_run_async(config, generations, population, headless))
 
 
 async def _run_async(
@@ -503,7 +496,6 @@ async def _run_async(
     generations_override: int | None,
     population_override: int | None,
     headless: bool,
-    serve: bool,
 ) -> None:
     """Async core of the ``breed run`` command."""
     from breed.adapters.callable_adapter import CallableAdapter
@@ -563,10 +555,10 @@ async def _run_async(
         # Attempt to load the real adapter
         try:
             if adapter_type == "anthropic_messages":
-                from breed.adapters.anthropic_adapter import AnthropicAdapter
+                from breed.adapters.anthropic_adapter import AnthropicMessagesAdapter
 
                 model = adapter_cfg.get("model", "claude-sonnet-4-6")
-                adapter = AnthropicAdapter(model=model)
+                adapter = AnthropicMessagesAdapter(model=model)
             elif adapter_type == "openai":
                 from breed.adapters.openai_adapter import OpenAIAdapter
 
@@ -596,31 +588,6 @@ async def _run_async(
 
     # --- lineage tracker ---------------------------------------------------
     lineage = LineageTracker(lineage_path)
-
-    # --- web UI background thread ------------------------------------------
-    if serve:
-        if not _WEB_AVAILABLE:
-            click.echo(
-                "Warning: web dependencies not installed. Skipping --serve.\n"
-                "  pip install agentbreed[web]",
-                err=True,
-            )
-        else:
-            import threading
-            import webbrowser
-
-            def _start_web() -> None:
-                try:
-                    from breed.web import app  # type: ignore[attr-defined]
-
-                    uvicorn.run(app, host="127.0.0.1", port=8420, log_level="warning")
-                except Exception:
-                    pass
-
-            web_thread = threading.Thread(target=_start_web, daemon=True)
-            web_thread.start()
-            time.sleep(1)
-            webbrowser.open("http://127.0.0.1:8420")
 
     # --- spawn population --------------------------------------------------
     pop = Population.spawn(pop_size, seed=42)
@@ -764,7 +731,10 @@ async def _run_async(
                 ))
 
             # --- Breed offspring ---
-            pop.breed(target_size=pop_size, seed=gen, fitness_scores=fitness_scores)
+            # Build per-survivor fitness list aligned with post-selection members
+            id_to_fitness = {er.genome_id: er.fitness_score for er in eval_results}
+            elite_fitness = [id_to_fitness.get(g.genome_id, 0.0) for g in pop.members]
+            pop.breed(target_size=pop_size, seed=gen, fitness_scores=elite_fitness)
 
             # Emit born events for new children
             for genome in pop.members:
@@ -1338,48 +1308,6 @@ def export(genome_id: str | None, fmt: str, config: str) -> None:
     click.echo(output)
 
 
-# ===================================================================
-# breed serve
-# ===================================================================
-
-@main.command()
-@click.option("--port", type=int, default=8420, help="Port for the web UI.")
-@click.option("--config", default="breed.yaml", help="Path to breed config file.")
-def serve(port: int, config: str) -> None:
-    """Start the Breeding Pit web UI server."""
-    if not _WEB_AVAILABLE:
-        click.echo(
-            "Error: web dependencies not installed.\n"
-            "  pip install agentbreed[web]",
-            err=True,
-        )
-        raise SystemExit(1)
-
-    console = _require_rich()
-
-    console.print()
-    console.print(Panel(
-        f"[bold]Breeding Pit[/] starting on "
-        f"[cyan]http://127.0.0.1:{port}[/]\n\n"
-        "[dim]Press Ctrl+C to stop[/]",
-        title=f"[bold bright_magenta]{_ICONS['dna']} Web UI[/]",
-        border_style="bright_magenta",
-    ))
-
-    import webbrowser
-
-    webbrowser.open(f"http://127.0.0.1:{port}")
-
-    try:
-        from breed.web import app  # type: ignore[attr-defined]
-
-        uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
-    except ImportError:
-        click.echo(
-            "Error: breed.web app not found. Web UI is not yet implemented.",
-            err=True,
-        )
-        raise SystemExit(1)
 
 
 # ===================================================================

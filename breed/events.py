@@ -298,13 +298,6 @@ class CompositeObserver:
             await observer.on_event(event)
 
 
-class WebObserver:
-    """Push events to the Breeding Pit web UI via WebSocket.
-
-    TODO: Implement WebSocket transport using FastAPI / uvicorn integration.
-    """
-
-    pass  # noqa: WPS420
 
 
 class RichObserver:

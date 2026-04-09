@@ -141,7 +141,7 @@ class LineageTracker:
         record = LineageRecord(
             genome_id=genome.genome_id,
             generation=genome.generation,
-            parents=list(genome.parents) if hasattr(genome, "parents") else [],
+            parents=list(genome.parents),
             fitness_score=fitness_score,
             fitness_breakdown=dict(fitness_breakdown or {}),
             survived=survived,

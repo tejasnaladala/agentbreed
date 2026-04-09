@@ -173,7 +173,7 @@ class BreedingEngine:
     # -- status --------------------------------------------------------------
 
     def get_status(self) -> dict[str, Any]:
-        """Return a snapshot of the engine state for the web UI."""
+        """Return a snapshot of the current engine state."""
         return {
             "current_generation": self._state.current_generation,
             "total_generations": self._config.generations,
@@ -428,6 +428,8 @@ class BreedingEngine:
 
 def _argmax(values: list[float]) -> int:
     """Return index of the maximum value."""
+    if not values:
+        raise ValueError("Cannot find argmax of empty list")
     best_idx = 0
     best_val = values[0]
     for i, v in enumerate(values):
