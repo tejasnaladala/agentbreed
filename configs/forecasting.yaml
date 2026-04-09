@@ -1,0 +1,33 @@
+# breed config: Forecasting arena
+arena:
+  type: forecasting
+  source: metaculus
+  num_questions: 50
+  categories: [technology, science, politics, economics]
+
+population:
+  size: 20
+  elite_count: 4
+
+breeding:
+  generations: 25
+  crossover_rate: 0.7
+  mutation_rate: 0.15
+  immigration_rate: 0.1
+  selection: tournament
+  tournament_size: 3
+
+fitness:
+  weights:
+    accuracy: 0.50
+    calibration: 0.25
+    cost_efficiency: 0.15
+    diversity: 0.10
+
+adapter:
+  type: anthropic_messages
+  model: claude-sonnet-4-6
+
+logging:
+  lineage_file: lineage.jsonl
+  results_dir: results/

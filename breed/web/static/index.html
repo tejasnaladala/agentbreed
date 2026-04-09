@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>breed // the breeding pit</title>
+<style>
+/* ================================================================
+   RESET & BASE
+   ================================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --bg-panel: #161b22;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --red: #f85149;
+  --purple: #d2a8ff;
+  --cyan: #79c0ff;
+  --gold: #ffd700;
+  --yellow: #d29922;
+  --orange: #f0883e;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ================================================================
+   LAYOUT
+   ================================================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* TOP BAR */
+#topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  min-height: 52px;
+  flex-shrink: 0;
+}
+
+#topbar .logo {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--accent), var(--purple), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: default;
+  user-select: none;
+}
+
+#topbar .logo .sub {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  display: block;
+  background: linear-gradient(90deg, var(--text-dim), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats-bar {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-item .label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+}
+
+.stat-item .value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stat-item .value.gen { color: var(--accent); }
+.stat-item .value.fit { color: var(--green); }
+.stat-item .value.pop { color: var(--purple); }
+.stat-item .value.status { color: var(--yellow); }
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  transition: all 0.15s;
+}
+
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.active { border-color: var(--green); color: var(--green); }
+.btn.danger { border-color: var(--red); color: var(--red); }
+
+/* MAIN CONTENT */
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* LEFT PANEL -- THE PIT */
+#pit-panel {
+  flex: 0 0 60%;
+  position: relative;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+#pit-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Floating breed messages */
+.breed-msg {
+  position: absolute;
+  pointer-events: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+  animation: floatUp 2s ease-out forwards;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+}
+
+/* Confetti container */
+#confetti-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* RIGHT PANEL -- STATS */
+#stats-panel {
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-panel);
+}
+
+/* Fitness chart */
+#chart-section {
+  flex: 0 0 220px;
+  border-bottom: 1px solid var(--border);
+  padding: 12px;
+  position: relative;
+}
+
+#chart-section h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+#fitness-chart {
+  width: 100%;
+  height: 180px;
+}
+
+/* Leaderboard */
+#leaderboard-section {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border);
+  padding: 12px;
+  max-height: 220px;
+}
+
+#leaderboard-section h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-table td {
+  padding: 5px 8px;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+}
+
+.leaderboard-table tr:first-child td {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.leaderboard-table .fitness { color: var(--green); font-weight: 600; }
+.leaderboard-table .genome-id { color: var(--cyan); font-family: inherit; }
+.leaderboard-table .gen-col { color: var(--text-dim); }
+
+/* Event log */
+#event-log-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px;
+}
+
+#event-log-section h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+#event-log {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+#event-log::-webkit-scrollbar { width: 6px; }
+#event-log::-webkit-scrollbar-track { background: transparent; }
+#event-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.log-entry {
+  padding: 3px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+
+.log-entry .time { color: var(--text-dim); flex-shrink: 0; min-width: 55px; }
+.log-entry .icon { flex-shrink: 0; min-width: 18px; text-align: center; }
+.log-entry .msg { flex: 1; }
+
+.log-entry.birth .msg { color: var(--green); }
+.log-entry.death .msg { color: var(--red); }
+.log-entry.champion .msg { color: var(--gold); }
+.log-entry.crossover .msg { color: var(--purple); }
+.log-entry.mutation .msg { color: var(--cyan); }
+.log-entry.generation .msg { color: var(--accent); }
+.log-entry.immigration .msg { color: var(--orange); }
+.log-entry.system .msg { color: var(--text-dim); }
+
+/* PROGRESS BAR */
+#gen-progress {
+  height: 3px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+#gen-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal-overlay.active { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal h2 {
+  font-size: 16px;
+  color: var(--gold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal .close-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.modal .close-btn:hover { color: var(--text); }
+
+.modal pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 11px;
+  overflow-x: auto;
+  color: var(--cyan);
+  line-height: 1.6;
+}
+
+/* DNA Helix animation */
+.dna-helix {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  height: 40px;
+  gap: 3px;
+}
+
+.dna-strand {
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  animation: helixWave 1.5s ease-in-out infinite;
+}
+
+@keyframes helixWave {
+  0%, 100% { transform: scaleY(0.3); opacity: 0.4; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* CONNECTION STATUS */
+#ws-status {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#ws-status .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#ws-status.connected { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+#ws-status.connected .dot { background: var(--green); }
+#ws-status.disconnected { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+#ws-status.disconnected .dot { background: var(--red); animation: blinker 1.5s infinite; }
+#ws-status.demo { background: rgba(210, 168, 255, 0.15); color: var(--purple); }
+#ws-status.demo .dot { background: var(--purple); animation: blinker 2s infinite; }
+
+@keyframes blinker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* SOUND TOGGLE */
+#sound-toggle {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 50;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="logo">
+      BREED
+      <span class="sub">the breeding pit</span>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="label">Generation</div>
+        <div class="value gen" id="stat-gen">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="label">Champion Fitness</div>
+        <div class="value fit" id="stat-fitness">0.000</div>
+      </div>
+      <div class="stat-item">
+        <div class="label">Population</div>
+        <div class="value pop" id="stat-pop">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="label">Status</div>
+        <div class="value status" id="stat-status">DEMO</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btn-pause" onclick="sendCommand('pause')">Pause</button>
+      <button class="btn" id="btn-resume" onclick="sendCommand('resume')">Resume</button>
+      <button class="btn" id="btn-demo" onclick="toggleDemo()">Demo</button>
+    </div>
+  </div>
+
+  <!-- GENERATION PROGRESS -->
+  <div id="gen-progress"><div id="gen-progress-fill"></div></div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+    <!-- THE PIT -->
+    <div id="pit-panel">
+      <canvas id="pit-canvas"></canvas>
+      <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <!-- STATS PANEL -->
+    <div id="stats-panel">
+      <!-- Fitness Chart -->
+      <div id="chart-section">
+        <h3>Fitness Over Generations</h3>
+        <canvas id="fitness-chart"></canvas>
+      </div>
+
+      <!-- Leaderboard -->
+      <div id="leaderboard-section">
+        <h3>Leaderboard</h3>
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Genome</th>
+              <th>Fitness</th>
+              <th>Gen</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Event Log -->
+      <div id="event-log-section">
+        <h3>Event Log</h3>
+        <div id="event-log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GENOME MODAL -->
+<div class="modal-overlay" id="genome-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">&times;</button>
+    <h2>Genome Inspector</h2>
+    <div class="dna-helix" id="dna-helix"></div>
+    <pre id="genome-json"></pre>
+  </div>
+</div>
+
+<!-- WS STATUS -->
+<div id="ws-status" class="demo">
+  <span class="dot"></span>
+  <span id="ws-status-text">DEMO MODE</span>
+</div>
+
+<!-- SOUND TOGGLE -->
+<button id="sound-toggle" class="btn" onclick="toggleSound()">Sound: OFF</button>
+
+<script>
+/* ================================================================
+   GLOBALS
+   ================================================================ */
+var PIT = document.getElementById('pit-canvas');
+var CTX = PIT.getContext('2d');
+var CONFETTI_CANVAS = document.getElementById('confetti-canvas');
+var CONFETTI_CTX = CONFETTI_CANVAS.getContext('2d');
+
+var WIDTH = 0, HEIGHT = 0;
+var agents = [];
+var particles = [];
+var confettiPieces = [];
+var breedAnimations = [];
+var deathAnimations = [];
+var immigrantAnimations = [];
+
+var generation = 0;
+var totalGenerations = 100;
+var championId = null;
+var championFitness = 0;
+var populationSize = 0;
+var engineStatus = 'demo';
+var demoMode = true;
+var demoTimer = 0;
+var soundEnabled = false;
+
+// Fitness chart data
+var fitnessHistory = { best: [], avg: [], worst: [], gens: [] };
+var MAX_CHART_POINTS = 60;
+
+// Leaderboard
+var leaderboard = [];
+
+// WebSocket
+var ws = null;
+var wsReconnectTimer = null;
+
+// Breeding messages
+var BREED_MSGS = [
+  "love is in the air",
+  "survival of the fittest",
+  "natural selection at work",
+  "darwin would be proud",
+  "it's getting hot in here",
+  "it's a match!",
+  "genetic jackpot",
+  "DNA shuffle!",
+  "two become three",
+  "evolution in action"
+];
+
+// Tombstone epitaphs
+var EPITAPHS = [
+  "Tried too many tools",
+  "Overconfident calibration",
+  "Rest in p < 0.05",
+  "Overfitted to the vibes",
+  "Low fitness, high ambition",
+  "Couldn't adapt",
+  "Darwin sends regards",
+  "Lost the evolutionary arms race",
+  "Prompt was too long",
+  "NaN fitness score",
+  "Out of context window",
+  "Hallucinated too hard",
+  "Token limit exceeded",
+  "Failed the vibe check"
+];
+
+/* ================================================================
+   AUDIO (Web Audio API -- tiny synth sounds)
+   ================================================================ */
+var audioCtx = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playTone(freq, duration, type, volume) {
+  if (!soundEnabled || !audioCtx) return;
+  var osc = audioCtx.createOscillator();
+  var gain = audioCtx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.value = freq;
+  gain.gain.value = volume || 0.08;
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playBirthSound() { playTone(880, 0.15, 'sine', 0.06); }
+function playDeathSound() { playTone(220, 0.3, 'triangle', 0.04); }
+function playChampionSound() {
+  playTone(523, 0.12, 'sine', 0.08);
+  setTimeout(function() { playTone(659, 0.12, 'sine', 0.08); }, 120);
+  setTimeout(function() { playTone(784, 0.2, 'sine', 0.1); }, 240);
+}
+function playBreedSound() { playTone(660, 0.1, 'sine', 0.05); }
+
+function toggleSound() {
+  initAudio();
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-toggle').textContent = soundEnabled ? 'Sound: ON' : 'Sound: OFF';
+  if (soundEnabled) {
+    document.getElementById('sound-toggle').classList.add('active');
+  } else {
+    document.getElementById('sound-toggle').classList.remove('active');
+  }
+}
+
+/* ================================================================
+   CANVAS RESIZE
+   ================================================================ */
+function resizeCanvas() {
+  var panel = document.getElementById('pit-panel');
+  WIDTH = panel.clientWidth;
+  HEIGHT = panel.clientHeight;
+  PIT.width = WIDTH;
+  PIT.height = HEIGHT;
+  CONFETTI_CANVAS.width = WIDTH;
+  CONFETTI_CANVAS.height = HEIGHT;
+}
+window.addEventListener('resize', resizeCanvas);
+
+/* ================================================================
+   COLOR HELPERS
+   ================================================================ */
+function lerpColor(a, b, t) {
+  return [
+    Math.round(a[0] + (b[0] - a[0]) * t),
+    Math.round(a[1] + (b[1] - a[1]) * t),
+    Math.round(a[2] + (b[2] - a[2]) * t),
+  ];
+}
+
+function drawCrown(ctx, x, y, size) {
+  ctx.save();
+  ctx.fillStyle = '#ffd700';
+  ctx.strokeStyle = '#b8860b';
+  ctx.lineWidth = 1;
+  var s = size * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(x - s, y + s * 0.4);
+  ctx.lineTo(x - s, y - s * 0.2);
+  ctx.lineTo(x - s * 0.5, y + s * 0.1);
+  ctx.lineTo(x, y - s * 0.6);
+  ctx.lineTo(x + s * 0.5, y + s * 0.1);
+  ctx.lineTo(x + s, y - s * 0.2);
+  ctx.lineTo(x + s, y + s * 0.4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* ================================================================
+   AGENT
+   ================================================================ */
+function Agent(id, fitness, gen, x, y) {
+  this.id = id;
+  this.fitness = fitness;
+  this.generation = gen;
+  this.x = (x !== undefined) ? x : Math.random() * (WIDTH - 80) + 40;
+  this.y = (y !== undefined) ? y : Math.random() * (HEIGHT - 80) + 40;
+  this.vx = (Math.random() - 0.5) * 0.4;
+  this.vy = (Math.random() - 0.5) * 0.4;
+  this.radius = this._calcRadius();
+  this.targetRadius = this.radius;
+  this.color = this._calcColor();
+  this.alpha = 1;
+  this.isChampion = false;
+  this.glowTimer = 0;
+  this.bobPhase = Math.random() * Math.PI * 2;
+  this.bobSpeed = 0.01 + Math.random() * 0.01;
+  this.dead = false;
+}
+
+Agent.prototype._calcRadius = function() {
+  return 8 + Math.pow(this.fitness, 0.6) * 22;
+};
+
+Agent.prototype._calcColor = function() {
+  var f = Math.max(0, Math.min(1, this.fitness));
+  if (f < 0.5) {
+    var t = f / 0.5;
+    return lerpColor([248, 81, 73], [210, 153, 34], t);
+  } else {
+    var t2 = (f - 0.5) / 0.5;
+    return lerpColor([210, 153, 34], [63, 185, 80], t2);
+  }
+};
+
+Agent.prototype.setFitness = function(f) {
+  this.fitness = f;
+  this.targetRadius = this._calcRadius();
+  this.color = this._calcColor();
+};
+
+Agent.prototype.update = function(dt) {
+  this.bobPhase += this.bobSpeed * dt;
+  var bob = Math.sin(this.bobPhase) * 1.5;
+
+  this.x += this.vx * dt * 0.06;
+  this.y += (this.vy * dt * 0.06) + bob * 0.02;
+
+  var margin = 30;
+  if (this.x < margin) { this.x = margin; this.vx *= -0.8; }
+  if (this.x > WIDTH - margin) { this.x = WIDTH - margin; this.vx *= -0.8; }
+  if (this.y < margin) { this.y = margin; this.vy *= -0.8; }
+  if (this.y > HEIGHT - margin) { this.y = HEIGHT - margin; this.vy *= -0.8; }
+
+  this.radius += (this.targetRadius - this.radius) * 0.05;
+
+  if (this.isChampion) {
+    this.glowTimer += dt * 0.003;
+  }
+
+  this.vx += (Math.random() - 0.5) * 0.02;
+  this.vy += (Math.random() - 0.5) * 0.02;
+  this.vx *= 0.998;
+  this.vy *= 0.998;
+};
+
+Agent.prototype.draw = function(ctx) {
+  if (this.alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = this.alpha;
+
+  var r = this.radius;
+
+  // Champion glow
+  if (this.isChampion) {
+    var glowSize = r + 12 + Math.sin(this.glowTimer) * 5;
+    var glow = ctx.createRadialGradient(this.x, this.y, r * 0.5, this.x, this.y, glowSize);
+    glow.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
+    glow.addColorStop(0.6, 'rgba(255, 215, 0, 0.1)');
+    glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Main body
+  var gradient = ctx.createRadialGradient(
+    this.x - r * 0.2, this.y - r * 0.2, r * 0.1,
+    this.x, this.y, r
+  );
+  var cr = this.color[0], cg = this.color[1], cb = this.color[2];
+  gradient.addColorStop(0, 'rgba(' + Math.min(255, cr + 40) + ',' + Math.min(255, cg + 40) + ',' + Math.min(255, cb + 40) + ', 0.95)');
+  gradient.addColorStop(0.7, 'rgb(' + cr + ',' + cg + ',' + cb + ')');
+  gradient.addColorStop(1, 'rgba(' + (cr * 0.6 | 0) + ',' + (cg * 0.6 | 0) + ',' + (cb * 0.6 | 0) + ', 0.8)');
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ', 0.4)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Crown for champion
+  if (this.isChampion) {
+    drawCrown(ctx, this.x, this.y - r - 8, 14);
+  }
+
+  // Fitness label
+  if (r > 14) {
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = 'bold ' + Math.max(8, r * 0.45 | 0) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.fitness.toFixed(2), this.x, this.y);
+  }
+
+  ctx.restore();
+};
+
+Agent.prototype.containsPoint = function(px, py) {
+  var dx = px - this.x;
+  var dy = py - this.y;
+  return dx * dx + dy * dy <= this.radius * this.radius;
+};
+
+/* ================================================================
+   PARTICLE
+   ================================================================ */
+function Particle(x, y, color, vx, vy, life, size) {
+  this.x = x;
+  this.y = y;
+  this.color = color;
+  this.vx = vx;
+  this.vy = vy;
+  this.life = life;
+  this.maxLife = life;
+  this.size = size || 3;
+  this.dead = false;
+}
+
+Particle.prototype.update = function(dt) {
+  this.x += this.vx * dt * 0.06;
+  this.y += this.vy * dt * 0.06;
+  this.vy += 0.01 * dt * 0.06;
+  this.life -= dt;
+  if (this.life <= 0) this.dead = true;
+};
+
+Particle.prototype.draw = function(ctx) {
+  var alpha = Math.max(0, this.life / this.maxLife);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = this.color;
+  ctx.beginPath();
+  ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+};
+
+function spawnBurstParticles(x, y, color, count) {
+  for (var i = 0; i < count; i++) {
+    var angle = Math.random() * Math.PI * 2;
+    var speed = 1 + Math.random() * 3;
+    particles.push(new Particle(
+      x, y, color,
+      Math.cos(angle) * speed,
+      Math.sin(angle) * speed,
+      600 + Math.random() * 400,
+      2 + Math.random() * 3
+    ));
+  }
+}
+
+/* ================================================================
+   CONFETTI
+   ================================================================ */
+function ConfettiPiece(x, y) {
+  this.x = x;
+  this.y = y;
+  this.vx = (Math.random() - 0.5) * 8;
+  this.vy = -3 - Math.random() * 6;
+  this.rotation = Math.random() * 360;
+  this.rotSpeed = (Math.random() - 0.5) * 10;
+  this.size = 4 + Math.random() * 4;
+  var colors = ['#ffd700', '#3fb950', '#58a6ff', '#d2a8ff', '#f85149', '#79c0ff'];
+  this.color = colors[Math.random() * 6 | 0];
+  this.life = 2000 + Math.random() * 1500;
+  this.maxLife = this.life;
+  this.dead = false;
+}
+
+ConfettiPiece.prototype.update = function(dt) {
+  this.x += this.vx * dt * 0.06;
+  this.y += this.vy * dt * 0.06;
+  this.vy += 0.03 * dt * 0.06;
+  this.rotation += this.rotSpeed;
+  this.life -= dt;
+  if (this.life <= 0) this.dead = true;
+};
+
+ConfettiPiece.prototype.draw = function(ctx) {
+  var alpha = Math.max(0, this.life / this.maxLife);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(this.x, this.y);
+  ctx.rotate(this.rotation * Math.PI / 180);
+  ctx.fillStyle = this.color;
+  ctx.fillRect(-this.size / 2, -this.size / 4, this.size, this.size / 2);
+  ctx.restore();
+};
+
+function spawnConfetti(x, y, count) {
+  for (var i = 0; i < count; i++) {
+    confettiPieces.push(new ConfettiPiece(x, y));
+  }
+}
+
+/* ================================================================
+   BREED ANIMATION
+   ================================================================ */
+function startBreedAnimation(parentA, parentB, childId) {
+  if (!parentA || !parentB) return;
+
+  var midX = (parentA.x + parentB.x) / 2;
+  var midY = (parentA.y + parentB.y) / 2;
+
+  breedAnimations.push({
+    parentA: parentA,
+    parentB: parentB,
+    phase: 0,
+    timer: 0,
+    midX: midX,
+    midY: midY,
+    childId: childId,
+    heartShown: false,
+  });
+
+  playBreedSound();
+
+  var msg = BREED_MSGS[Math.random() * BREED_MSGS.length | 0];
+  showFloatingText(midX, midY - 30, msg);
+}
+
+function updateBreedAnimations(dt) {
+  for (var i = breedAnimations.length - 1; i >= 0; i--) {
+    var anim = breedAnimations[i];
+    anim.timer += dt;
+
+    if (anim.phase === 0) {
+      var t = Math.min(1, anim.timer / 800);
+      var ease = t * t * (3 - 2 * t);
+      anim.parentA.x += (anim.midX - anim.parentA.x) * ease * 0.03;
+      anim.parentA.y += (anim.midY - anim.parentA.y) * ease * 0.03;
+      anim.parentB.x += (anim.midX - anim.parentB.x) * ease * 0.03;
+      anim.parentB.y += (anim.midY - anim.parentB.y) * ease * 0.03;
+
+      if (anim.timer > 600 && !anim.heartShown) {
+        anim.heartShown = true;
+        showFloatingText(anim.midX, anim.midY - 20, '\u2764');
+      }
+
+      if (anim.timer > 800) {
+        anim.phase = 1;
+        anim.timer = 0;
+        spawnBurstParticles(anim.midX, anim.midY, '#d2a8ff', 20);
+      }
+    } else if (anim.phase === 1) {
+      if (anim.timer > 300) {
+        anim.phase = 2;
+        anim.timer = 0;
+        var child = new Agent(anim.childId, 0, generation, anim.midX, anim.midY);
+        child.vx = (Math.random() - 0.5) * 2;
+        child.vy = (Math.random() - 0.5) * 2;
+        agents.push(child);
+        spawnBurstParticles(anim.midX, anim.midY, '#3fb950', 15);
+        playBirthSound();
+      }
+    } else {
+      if (anim.timer > 200) {
+        breedAnimations.splice(i, 1);
+      }
+    }
+  }
+}
+
+/* ================================================================
+   DEATH ANIMATION
+   ================================================================ */
+function startDeathAnimation(agent) {
+  agent.dead = true;
+  var epitaph = EPITAPHS[Math.random() * EPITAPHS.length | 0];
+
+  deathAnimations.push({
+    agent: agent,
+    timer: 0,
+    epitaph: epitaph,
+    startRadius: agent.radius,
+  });
+
+  playDeathSound();
+  showFloatingText(agent.x, agent.y - agent.radius - 10, '\u26B0 ' + epitaph);
+}
+
+function updateDeathAnimations(dt) {
+  for (var i = deathAnimations.length - 1; i >= 0; i--) {
+    var anim = deathAnimations[i];
+    anim.timer += dt;
+    var t = Math.min(1, anim.timer / 1000);
+
+    anim.agent.radius = anim.startRadius * (1 - t);
+    anim.agent.alpha = 1 - t;
+    anim.agent.color = lerpColor(anim.agent.color, [100, 100, 100], t * 0.05);
+
+    if (anim.timer > 1000) {
+      var idx = agents.indexOf(anim.agent);
+      if (idx !== -1) agents.splice(idx, 1);
+      deathAnimations.splice(i, 1);
+    }
+  }
+}
+
+/* ================================================================
+   IMMIGRANT ANIMATION
+   ================================================================ */
+function startImmigrantAnimation(id, fitness, gen) {
+  var x = Math.random() * (WIDTH - 100) + 50;
+  var agent = new Agent(id, fitness, gen, x, -30);
+  agent.vy = 2;
+  agents.push(agent);
+
+  immigrantAnimations.push({ agent: agent, timer: 0, landed: false });
+  showFloatingText(x, 30, 'immigrant!');
+}
+
+function updateImmigrantAnimations(dt) {
+  for (var i = immigrantAnimations.length - 1; i >= 0; i--) {
+    var anim = immigrantAnimations[i];
+    anim.timer += dt;
+
+    if (!anim.landed) {
+      var targetY = HEIGHT * 0.3 + Math.random() * HEIGHT * 0.5;
+      anim.agent.y += 2.5 * dt * 0.06;
+
+      if (anim.agent.y >= targetY) {
+        anim.landed = true;
+        anim.agent.y = targetY;
+        anim.agent.vy = -1;
+        spawnBurstParticles(anim.agent.x, anim.agent.y, '#f0883e', 10);
+      }
+    }
+
+    if (anim.timer > 1500) {
+      immigrantAnimations.splice(i, 1);
+    }
+  }
+}
+
+/* ================================================================
+   FLOATING TEXT
+   ================================================================ */
+function showFloatingText(x, y, text) {
+  var panel = document.getElementById('pit-panel');
+  var div = document.createElement('div');
+  div.className = 'breed-msg';
+  div.textContent = text;
+  div.style.left = x + 'px';
+  div.style.top = y + 'px';
+  panel.appendChild(div);
+  setTimeout(function() { div.remove(); }, 2100);
+}
+
+/* ================================================================
+   FITNESS CHART (vanilla canvas)
+   ================================================================ */
+function drawFitnessChart() {
+  var canvas = document.getElementById('fitness-chart');
+  var ctx = canvas.getContext('2d');
+  var rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 24;
+  canvas.height = 180;
+  var W = canvas.width;
+  var H = canvas.height;
+  var pad = { top: 10, right: 10, bottom: 25, left: 40 };
+  var plotW = W - pad.left - pad.right;
+  var plotH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  var gens = fitnessHistory.gens;
+  if (gens.length < 2) {
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Waiting for data...', W / 2, H / 2);
+    return;
+  }
+
+  var allVals = fitnessHistory.worst.concat(fitnessHistory.best);
+  var minVal = Math.min.apply(null, allVals.concat([0]));
+  var maxVal = Math.max.apply(null, allVals.concat([1]));
+  var range = maxVal - minVal || 1;
+
+  function xPos(i) { return pad.left + (i / (gens.length - 1)) * plotW; }
+  function yPos(v) { return pad.top + plotH - ((v - minVal) / range) * plotH; }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(48, 54, 61, 0.6)';
+  ctx.lineWidth = 0.5;
+  for (var gi = 0; gi <= 4; gi++) {
+    var gy = pad.top + (plotH / 4) * gi;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, gy);
+    ctx.lineTo(W - pad.right, gy);
+    ctx.stroke();
+
+    var val = maxVal - (range / 4) * gi;
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(2), pad.left - 4, gy + 3);
+  }
+
+  // X-axis labels
+  ctx.fillStyle = '#8b949e';
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'center';
+  var step = Math.max(1, Math.floor(gens.length / 6));
+  for (var xi = 0; xi < gens.length; xi += step) {
+    ctx.fillText(gens[xi], xPos(xi), H - 5);
+  }
+
+  // Draw a line series
+  function drawLine(data, color, width) {
+    if (data.length < 2) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(data[0]));
+    for (var li = 1; li < data.length; li++) {
+      ctx.lineTo(xPos(li), yPos(data[li]));
+    }
+    ctx.stroke();
+  }
+
+  // Fill under best line
+  if (fitnessHistory.best.length >= 2) {
+    ctx.fillStyle = 'rgba(63, 185, 80, 0.08)';
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(fitnessHistory.best[0]));
+    for (var fi = 1; fi < fitnessHistory.best.length; fi++) {
+      ctx.lineTo(xPos(fi), yPos(fitnessHistory.best[fi]));
+    }
+    ctx.lineTo(xPos(fitnessHistory.best.length - 1), yPos(minVal));
+    ctx.lineTo(xPos(0), yPos(minVal));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawLine(fitnessHistory.worst, 'rgba(248, 81, 73, 0.5)', 1);
+  drawLine(fitnessHistory.avg, 'rgba(210, 153, 34, 0.8)', 1.5);
+  drawLine(fitnessHistory.best, '#3fb950', 2);
+
+  // Legend
+  var legendY = pad.top + 4;
+  var legends = [
+    { color: '#3fb950', label: 'Best' },
+    { color: '#d29922', label: 'Avg' },
+    { color: '#f85149', label: 'Worst' },
+  ];
+  var lx = pad.left + 4;
+  legends.forEach(function(l) {
+    ctx.fillStyle = l.color;
+    ctx.fillRect(lx, legendY, 10, 3);
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(l.label, lx + 14, legendY + 4);
+    lx += 55;
+  });
+}
+
+/* ================================================================
+   LEADERBOARD
+   ================================================================ */
+function updateLeaderboard() {
+  var top5 = leaderboard.slice()
+    .sort(function(a, b) { return b.fitness - a.fitness; })
+    .slice(0, 5);
+
+  var tbody = document.getElementById('leaderboard-body');
+  // Clear existing rows safely
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+
+  top5.forEach(function(entry, i) {
+    var tr = document.createElement('tr');
+
+    var tdRank = document.createElement('td');
+    var medal = i === 0 ? '\u{1F451}' : (i === 1 ? '\u{1F948}' : (i === 2 ? '\u{1F949}' : String(i + 1)));
+    tdRank.textContent = medal;
+    tr.appendChild(tdRank);
+
+    var tdGenome = document.createElement('td');
+    tdGenome.className = 'genome-id';
+    tdGenome.title = entry.id;
+    tdGenome.style.cursor = 'pointer';
+    tdGenome.textContent = entry.id.substring(0, 8) + '...';
+    tdGenome.addEventListener('click', (function(gid) {
+      return function() { showGenomeModal(gid); };
+    })(entry.id));
+    tr.appendChild(tdGenome);
+
+    var tdFit = document.createElement('td');
+    tdFit.className = 'fitness';
+    tdFit.textContent = entry.fitness.toFixed(4);
+    tr.appendChild(tdFit);
+
+    var tdGen = document.createElement('td');
+    tdGen.className = 'gen-col';
+    tdGen.textContent = entry.generation;
+    tr.appendChild(tdGen);
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* ================================================================
+   EVENT LOG
+   ================================================================ */
+function addLogEntry(type, icon, message) {
+  var log = document.getElementById('event-log');
+  var entry = document.createElement('div');
+  entry.className = 'log-entry ' + type;
+
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2, '0');
+  var mm = String(now.getMinutes()).padStart(2, '0');
+  var ss = String(now.getSeconds()).padStart(2, '0');
+  var time = hh + ':' + mm + ':' + ss;
+
+  var spanTime = document.createElement('span');
+  spanTime.className = 'time';
+  spanTime.textContent = time;
+  entry.appendChild(spanTime);
+
+  var spanIcon = document.createElement('span');
+  spanIcon.className = 'icon';
+  spanIcon.textContent = icon;
+  entry.appendChild(spanIcon);
+
+  var spanMsg = document.createElement('span');
+  spanMsg.className = 'msg';
+  spanMsg.textContent = message;
+  entry.appendChild(spanMsg);
+
+  log.insertBefore(entry, log.firstChild);
+
+  // Keep only last 100 entries
+  while (log.children.length > 100) {
+    log.removeChild(log.lastChild);
+  }
+}
+
+/* ================================================================
+   GENOME MODAL
+   ================================================================ */
+function showGenomeModal(genomeId) {
+  var agent = null;
+  for (var ai = 0; ai < agents.length; ai++) {
+    if (agents[ai].id === genomeId) { agent = agents[ai]; break; }
+  }
+  var modal = document.getElementById('genome-modal');
+  var json = document.getElementById('genome-json');
+  var helix = document.getElementById('dna-helix');
+
+  // DNA helix bars
+  while (helix.firstChild) helix.removeChild(helix.firstChild);
+  var colors = ['#3fb950', '#58a6ff', '#d2a8ff', '#ffd700', '#f85149', '#79c0ff'];
+  for (var hi = 0; hi < 20; hi++) {
+    var bar = document.createElement('div');
+    bar.className = 'dna-strand';
+    bar.style.backgroundColor = colors[hi % colors.length];
+    bar.style.animationDelay = (hi * 0.1) + 's';
+    helix.appendChild(bar);
+  }
+
+  var info = {
+    genome_id: genomeId,
+    fitness: agent ? agent.fitness.toFixed(6) : 'unknown',
+    generation: agent ? agent.generation : '?',
+    is_champion: agent ? agent.isChampion : false,
+    position: agent ? { x: agent.x.toFixed(1), y: agent.y.toFixed(1) } : null,
+    radius: agent ? agent.radius.toFixed(1) : null,
+  };
+
+  json.textContent = JSON.stringify(info, null, 2);
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('genome-modal').classList.remove('active');
+}
+
+document.getElementById('genome-modal').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('genome-modal')) closeModal();
+});
+
+/* ================================================================
+   PIT CLICK HANDLER
+   ================================================================ */
+PIT.addEventListener('click', function(e) {
+  var rect = PIT.getBoundingClientRect();
+  var mx = e.clientX - rect.left;
+  var my = e.clientY - rect.top;
+
+  for (var ci = agents.length - 1; ci >= 0; ci--) {
+    if (agents[ci].containsPoint(mx, my) && !agents[ci].dead) {
+      showGenomeModal(agents[ci].id);
+      return;
+    }
+  }
+});
+
+/* ================================================================
+   WEBSOCKET
+   ================================================================ */
+function connectWebSocket() {
+  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  var url = protocol + '://' + location.host + '/ws';
+
+  try {
+    ws = new WebSocket(url);
+  } catch (err) {
+    setWsStatus('demo');
+    startDemoMode();
+    return;
+  }
+
+  ws.onopen = function() {
+    setWsStatus('connected');
+    demoMode = false;
+    addLogEntry('system', '\u{1F50C}', 'Connected to breeding engine');
+  };
+
+  ws.onmessage = function(e) {
+    try {
+      var event = JSON.parse(e.data);
+      handleEvent(event);
+    } catch (err) { /* ignore parse errors */ }
+  };
+
+  ws.onclose = function() {
+    setWsStatus('disconnected');
+    addLogEntry('system', '\u26A0', 'Disconnected from engine');
+    wsReconnectTimer = setTimeout(connectWebSocket, 3000);
+  };
+
+  ws.onerror = function() {
+    ws.close();
+  };
+}
+
+function setWsStatus(status) {
+  var el = document.getElementById('ws-status');
+  var text = document.getElementById('ws-status-text');
+  el.className = status;
+  if (status === 'connected') text.textContent = 'LIVE';
+  else if (status === 'disconnected') text.textContent = 'RECONNECTING...';
+  else text.textContent = 'DEMO MODE';
+}
+
+function sendCommand(cmd) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ command: cmd }));
+  }
+  if (cmd === 'pause') {
+    engineStatus = 'paused';
+    document.getElementById('stat-status').textContent = 'PAUSED';
+  } else if (cmd === 'resume') {
+    engineStatus = 'running';
+    document.getElementById('stat-status').textContent = 'RUNNING';
+  }
+}
+
+/* ================================================================
+   EVENT HANDLER
+   ================================================================ */
+function handleEvent(event) {
+  var et = event.event_type;
+
+  if (et === 'breeding_started') {
+    totalGenerations = event.total_generations || 100;
+    populationSize = event.population_size || 20;
+    engineStatus = 'running';
+    document.getElementById('stat-status').textContent = 'RUNNING';
+    addLogEntry('system', '\u{1F680}', 'Breeding started! ' + event.population_size + ' agents, ' + event.total_generations + ' gens');
+
+  } else if (et === 'agent_born') {
+    addLogEntry('birth', '\u{1F476}', 'Born: ' + event.genome_id.substring(0, 8) + '... (gen ' + event.generation + ')');
+    if (event.parents && event.parents.length >= 2) {
+      var pA = null, pB = null;
+      for (var pi = 0; pi < agents.length; pi++) {
+        if (agents[pi].id === event.parents[0]) pA = agents[pi];
+        if (agents[pi].id === event.parents[1]) pB = agents[pi];
+      }
+      if (pA && pB) {
+        startBreedAnimation(pA, pB, event.genome_id);
+      } else {
+        var child = new Agent(event.genome_id, 0, event.generation);
+        agents.push(child);
+        spawnBurstParticles(child.x, child.y, '#3fb950', 10);
+        playBirthSound();
+      }
+    } else {
+      var newborn = new Agent(event.genome_id, 0, event.generation);
+      agents.push(newborn);
+    }
+
+  } else if (et === 'agent_died') {
+    var dying = null;
+    for (var di = 0; di < agents.length; di++) {
+      if (agents[di].id === event.genome_id && !agents[di].dead) { dying = agents[di]; break; }
+    }
+    if (dying) startDeathAnimation(dying);
+    addLogEntry('death', '\u26B0', 'Died: ' + event.genome_id.substring(0, 8) + '... (fitness: ' + (event.fitness_score || 0).toFixed(3) + ')');
+
+  } else if (et === 'agent_evaluated') {
+    var evaluated = null;
+    for (var ei = 0; ei < agents.length; ei++) {
+      if (agents[ei].id === event.genome_id) { evaluated = agents[ei]; break; }
+    }
+    if (evaluated) {
+      evaluated.setFitness(event.fitness_score);
+      evaluated.generation = event.generation;
+    }
+    var existingLb = null;
+    for (var li = 0; li < leaderboard.length; li++) {
+      if (leaderboard[li].id === event.genome_id) { existingLb = leaderboard[li]; break; }
+    }
+    if (existingLb) {
+      existingLb.fitness = event.fitness_score;
+      existingLb.generation = event.generation;
+    } else {
+      leaderboard.push({ id: event.genome_id, fitness: event.fitness_score, generation: event.generation });
+    }
+    if (leaderboard.length > 30) {
+      leaderboard.sort(function(a, b) { return b.fitness - a.fitness; });
+      leaderboard.length = 30;
+    }
+    updateLeaderboard();
+
+  } else if (et === 'crossover_event') {
+    addLogEntry('crossover', '\u{1F9EC}', 'Crossover: ' + event.parent_a_id.substring(0, 6) + ' x ' + event.parent_b_id.substring(0, 6) + ' -> ' + event.child_id.substring(0, 6) + ' [' + event.operator + ']');
+
+  } else if (et === 'mutation_event') {
+    addLogEntry('mutation', '\u{1F9EA}', 'Mutation: ' + event.genome_id.substring(0, 8) + '... [' + event.operator + '] ' + (event.gene_name || ''));
+
+  } else if (et === 'generation_complete') {
+    generation = event.generation;
+    populationSize = event.population_size;
+    championId = event.champion_id;
+    championFitness = event.best_fitness;
+
+    for (var gci = 0; gci < agents.length; gci++) agents[gci].isChampion = false;
+    var champ = null;
+    for (var gci2 = 0; gci2 < agents.length; gci2++) {
+      if (agents[gci2].id === championId) { champ = agents[gci2]; break; }
+    }
+    if (champ) {
+      champ.isChampion = true;
+      champ.vx += (WIDTH / 2 - champ.x) * 0.002;
+      champ.vy += (60 - champ.y) * 0.002;
+    }
+
+    fitnessHistory.gens.push(event.generation);
+    fitnessHistory.best.push(event.best_fitness);
+    fitnessHistory.avg.push(event.avg_fitness);
+    fitnessHistory.worst.push(event.worst_fitness);
+    if (fitnessHistory.gens.length > MAX_CHART_POINTS) {
+      fitnessHistory.gens.shift();
+      fitnessHistory.best.shift();
+      fitnessHistory.avg.shift();
+      fitnessHistory.worst.shift();
+    }
+
+    document.getElementById('stat-gen').textContent = generation;
+    document.getElementById('stat-fitness').textContent = championFitness.toFixed(3);
+    document.getElementById('stat-pop').textContent = populationSize;
+
+    var progress = totalGenerations > 0 ? (generation / totalGenerations) * 100 : 0;
+    document.getElementById('gen-progress-fill').style.width = progress + '%';
+
+    addLogEntry('generation', '\u{1F4CA}', 'Gen ' + event.generation + ': best=' + event.best_fitness.toFixed(3) + ' avg=' + event.avg_fitness.toFixed(3) + ' pop=' + event.population_size);
+
+  } else if (et === 'champion_changed') {
+    for (var cci = 0; cci < agents.length; cci++) agents[cci].isChampion = false;
+    championId = event.new_champion_id;
+    championFitness = event.fitness_score;
+    var newChamp = null;
+    for (var cci2 = 0; cci2 < agents.length; cci2++) {
+      if (agents[cci2].id === championId) { newChamp = agents[cci2]; break; }
+    }
+    if (newChamp) {
+      newChamp.isChampion = true;
+      spawnConfetti(newChamp.x, newChamp.y, 60);
+      agents.forEach(function(a) {
+        if (a !== newChamp) {
+          a.targetRadius = a._calcRadius() * 1.2;
+          setTimeout(function() { a.targetRadius = a._calcRadius(); }, 300);
+        }
+      });
+    }
+    playChampionSound();
+    addLogEntry('champion', '\u{1F451}', 'NEW CHAMPION: ' + event.new_champion_id.substring(0, 8) + '... fitness=' + event.fitness_score.toFixed(4));
+    document.getElementById('stat-fitness').textContent = championFitness.toFixed(3);
+
+  } else if (et === 'immigrants_injected') {
+    for (var ii = 0; ii < event.count; ii++) {
+      var immId = 'imm_' + Math.random().toString(36).substring(2, 10);
+      startImmigrantAnimation(immId, Math.random() * 0.3, event.generation);
+    }
+    addLogEntry('immigration', '\u{1F4A8}', event.count + ' immigrants parachuted in! (gen ' + event.generation + ')');
+
+  } else if (et === 'breeding_complete') {
+    engineStatus = 'complete';
+    document.getElementById('stat-status').textContent = 'COMPLETE';
+    addLogEntry('system', '\u{1F3C1}', 'Breeding complete! Champion: ' + event.champion_id.substring(0, 8) + '... fitness=' + event.champion_fitness.toFixed(4));
+    for (var bci = 0; bci < 5; bci++) {
+      (function(delay) {
+        setTimeout(function() { spawnConfetti(Math.random() * WIDTH, Math.random() * HEIGHT * 0.5, 40); }, delay);
+      })(bci * 200);
+    }
+  }
+}
+
+/* ================================================================
+   DEMO MODE
+   ================================================================ */
+function startDemoMode() {
+  demoMode = true;
+  engineStatus = 'demo';
+  document.getElementById('stat-status').textContent = 'DEMO';
+  addLogEntry('system', '\u{1F3AE}', 'Demo mode active -- showing simulated evolution');
+
+  for (var di = 0; di < 16; di++) {
+    var id = 'demo_' + Math.random().toString(36).substring(2, 10);
+    var fitness = 0.1 + Math.random() * 0.4;
+    var agent = new Agent(id, fitness, 0);
+    agents.push(agent);
+    leaderboard.push({ id: id, fitness: fitness, generation: 0 });
+  }
+
+  var best = agents[0];
+  for (var bi = 1; bi < agents.length; bi++) {
+    if (agents[bi].fitness > best.fitness) best = agents[bi];
+  }
+  best.isChampion = true;
+  championId = best.id;
+  championFitness = best.fitness;
+
+  updateLeaderboard();
+  document.getElementById('stat-pop').textContent = agents.length;
+  document.getElementById('stat-fitness').textContent = championFitness.toFixed(3);
+}
+
+function updateDemoMode(dt) {
+  if (!demoMode) return;
+
+  demoTimer += dt;
+
+  if (demoTimer > 4000) {
+    demoTimer = 0;
+    generation++;
+    document.getElementById('stat-gen').textContent = generation;
+
+    var improvement = 0.01 + Math.random() * 0.02;
+    agents.forEach(function(a) {
+      if (!a.dead) {
+        var newFit = Math.min(1, a.fitness + (Math.random() - 0.3) * 0.08 + improvement * 0.3);
+        a.setFitness(Math.max(0.01, newFit));
+        for (var lbi = 0; lbi < leaderboard.length; lbi++) {
+          if (leaderboard[lbi].id === a.id) { leaderboard[lbi].fitness = a.fitness; break; }
+        }
+      }
+    });
+
+    // Kill weakest 2
+    var alive = agents.filter(function(a) { return !a.dead; }).sort(function(a, b) { return a.fitness - b.fitness; });
+    for (var ki = 0; ki < Math.min(2, alive.length - 4); ki++) {
+      startDeathAnimation(alive[ki]);
+      leaderboard = leaderboard.filter(function(l) { return l.id !== alive[ki].id; });
+    }
+
+    // Breed top agents
+    var sorted = agents.filter(function(a) { return !a.dead; }).sort(function(a, b) { return b.fitness - a.fitness; });
+    if (sorted.length >= 2) {
+      var pA = sorted[0];
+      var pBidx = 1 + (Math.random() * Math.min(3, sorted.length - 1) | 0);
+      var pB = sorted[pBidx];
+      var childId = 'demo_' + Math.random().toString(36).substring(2, 10);
+      startBreedAnimation(pA, pB, childId);
+
+      var childFit = (pA.fitness + pB.fitness) / 2 + (Math.random() - 0.4) * 0.1;
+      (function(cid, cf) {
+        setTimeout(function() {
+          for (var ci = 0; ci < agents.length; ci++) {
+            if (agents[ci].id === cid) {
+              agents[ci].setFitness(Math.max(0.01, Math.min(1, cf)));
+              leaderboard.push({ id: cid, fitness: agents[ci].fitness, generation: generation });
+              break;
+            }
+          }
+        }, 1500);
+      })(childId, childFit);
+    }
+
+    // Occasionally add immigrant
+    if (Math.random() < 0.2) {
+      var immId = 'imm_' + Math.random().toString(36).substring(2, 10);
+      startImmigrantAnimation(immId, Math.random() * 0.3, generation);
+      leaderboard.push({ id: immId, fitness: 0.15, generation: generation });
+    }
+
+    // Update champion
+    var aliveNow = agents.filter(function(a) { return !a.dead; });
+    if (aliveNow.length > 0) {
+      var newBest = aliveNow[0];
+      for (var nbi = 1; nbi < aliveNow.length; nbi++) {
+        if (aliveNow[nbi].fitness > newBest.fitness) newBest = aliveNow[nbi];
+      }
+      if (newBest.id !== championId) {
+        agents.forEach(function(a) { a.isChampion = false; });
+        newBest.isChampion = true;
+        championId = newBest.id;
+        championFitness = newBest.fitness;
+        spawnConfetti(newBest.x, newBest.y, 40);
+        playChampionSound();
+        addLogEntry('champion', '\u{1F451}', 'NEW CHAMPION: ' + newBest.id.substring(0, 8) + '... fitness=' + newBest.fitness.toFixed(4));
+      }
+    }
+
+    // Chart data
+    var fitnesses = aliveNow.map(function(a) { return a.fitness; });
+    var bestFit = Math.max.apply(null, fitnesses);
+    var avgFit = fitnesses.reduce(function(s, v) { return s + v; }, 0) / fitnesses.length;
+    var worstFit = Math.min.apply(null, fitnesses);
+
+    fitnessHistory.gens.push(generation);
+    fitnessHistory.best.push(bestFit);
+    fitnessHistory.avg.push(avgFit);
+    fitnessHistory.worst.push(worstFit);
+    if (fitnessHistory.gens.length > MAX_CHART_POINTS) {
+      fitnessHistory.gens.shift();
+      fitnessHistory.best.shift();
+      fitnessHistory.avg.shift();
+      fitnessHistory.worst.shift();
+    }
+
+    populationSize = aliveNow.length;
+    document.getElementById('stat-pop').textContent = populationSize;
+    document.getElementById('stat-fitness').textContent = championFitness.toFixed(3);
+
+    var genProgress = totalGenerations > 0 ? (generation / totalGenerations) * 100 : 0;
+    document.getElementById('gen-progress-fill').style.width = Math.min(100, genProgress) + '%';
+
+    addLogEntry('generation', '\u{1F4CA}', 'Gen ' + generation + ': best=' + bestFit.toFixed(3) + ' avg=' + avgFit.toFixed(3) + ' pop=' + populationSize);
+
+    updateLeaderboard();
+  }
+}
+
+function toggleDemo() {
+  if (demoMode) {
+    demoMode = false;
+    engineStatus = 'idle';
+    document.getElementById('stat-status').textContent = 'IDLE';
+    agents = [];
+    particles = [];
+    confettiPieces = [];
+    breedAnimations = [];
+    deathAnimations = [];
+    leaderboard = [];
+    fitnessHistory = { best: [], avg: [], worst: [], gens: [] };
+    generation = 0;
+    document.getElementById('stat-gen').textContent = '0';
+    document.getElementById('stat-fitness').textContent = '0.000';
+    document.getElementById('stat-pop').textContent = '0';
+    var lbBody = document.getElementById('leaderboard-body');
+    while (lbBody.firstChild) lbBody.removeChild(lbBody.firstChild);
+    var logEl = document.getElementById('event-log');
+    while (logEl.firstChild) logEl.removeChild(logEl.firstChild);
+    addLogEntry('system', '\u26AA', 'Demo stopped. Waiting for live connection...');
+    connectWebSocket();
+  } else {
+    if (ws) { ws.close(); ws = null; }
+    if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+    setWsStatus('demo');
+    startDemoMode();
+  }
+}
+
+/* ================================================================
+   RENDER LOOP
+   ================================================================ */
+var lastTime = 0;
+var chartTimer = 0;
+
+function render(timestamp) {
+  var dt = lastTime ? Math.min(timestamp - lastTime, 50) : 16;
+  lastTime = timestamp;
+
+  CTX.clearRect(0, 0, WIDTH, HEIGHT);
+  CONFETTI_CTX.clearRect(0, 0, WIDTH, HEIGHT);
+
+  // Background grid
+  drawGrid();
+
+  // Update demo
+  updateDemoMode(dt);
+
+  // Update animations
+  updateBreedAnimations(dt);
+  updateDeathAnimations(dt);
+  updateImmigrantAnimations(dt);
+
+  // Update and draw agents
+  for (var ai = 0; ai < agents.length; ai++) {
+    agents[ai].update(dt);
+    agents[ai].draw(CTX);
+  }
+
+  // Update and draw particles
+  for (var pi = particles.length - 1; pi >= 0; pi--) {
+    particles[pi].update(dt);
+    particles[pi].draw(CTX);
+    if (particles[pi].dead) particles.splice(pi, 1);
+  }
+
+  // Update and draw confetti
+  for (var ci = confettiPieces.length - 1; ci >= 0; ci--) {
+    confettiPieces[ci].update(dt);
+    confettiPieces[ci].draw(CONFETTI_CTX);
+    if (confettiPieces[ci].dead) confettiPieces.splice(ci, 1);
+  }
+
+  // Redraw chart periodically
+  chartTimer += dt;
+  if (chartTimer > 1000) {
+    chartTimer = 0;
+    drawFitnessChart();
+  }
+
+  requestAnimationFrame(render);
+}
+
+function drawGrid() {
+  CTX.strokeStyle = 'rgba(48, 54, 61, 0.3)';
+  CTX.lineWidth = 0.5;
+  var gridSize = 40;
+  for (var x = 0; x < WIDTH; x += gridSize) {
+    CTX.beginPath();
+    CTX.moveTo(x, 0);
+    CTX.lineTo(x, HEIGHT);
+    CTX.stroke();
+  }
+  for (var y = 0; y < HEIGHT; y += gridSize) {
+    CTX.beginPath();
+    CTX.moveTo(0, y);
+    CTX.lineTo(WIDTH, y);
+    CTX.stroke();
+  }
+
+  // Title watermark
+  CTX.save();
+  CTX.fillStyle = 'rgba(48, 54, 61, 0.15)';
+  CTX.font = 'bold 80px monospace';
+  CTX.textAlign = 'center';
+  CTX.textBaseline = 'middle';
+  CTX.fillText('BREED', WIDTH / 2, HEIGHT / 2);
+  CTX.restore();
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+function init() {
+  resizeCanvas();
+  drawFitnessChart();
+
+  // Try WebSocket first, fall back to demo
+  if (location.hostname && location.hostname !== '' && location.protocol !== 'file:') {
+    connectWebSocket();
+    setTimeout(function() {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        if (!demoMode) {
+          setWsStatus('demo');
+          startDemoMode();
+        }
+      }
+    }, 2000);
+  } else {
+    setWsStatus('demo');
+    startDemoMode();
+  }
+
+  requestAnimationFrame(render);
+}
+
+init();
+</script>
+</body>
+</html>

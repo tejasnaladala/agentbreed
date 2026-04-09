@@ -1,0 +1,32 @@
+# breed config: Coding arena
+arena:
+  type: coding
+  problems_dir: problems/
+  num_problems: 20
+  difficulty: [easy, medium]
+
+population:
+  size: 15
+  elite_count: 3
+
+breeding:
+  generations: 15
+  crossover_rate: 0.7
+  mutation_rate: 0.2
+  immigration_rate: 0.1
+  selection: tournament
+  tournament_size: 3
+
+fitness:
+  weights:
+    accuracy: 0.60
+    cost_efficiency: 0.20
+    diversity: 0.20
+
+adapter:
+  type: callable
+  # Users provide their own evaluation function
+
+logging:
+  lineage_file: lineage.jsonl
+  results_dir: results/
