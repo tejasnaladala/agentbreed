@@ -95,6 +95,33 @@ _ICONS: dict[str, str] = {
 }
 
 
+_BANNER_RICH = """
+[bright_red]  _                        _[/]
+[bright_red] | |__  _ __ ___  ___  __| |[/]
+[bright_yellow] | '_ \\| '__/ _ \\/ _ \\/ _` |[/]
+[bright_yellow] | |_) | | |  __/  __/ (_| |[/]
+[bright_green] |_.__/|_|  \\___|\\___|\\__,_|[/]
+[dim]  Darwinian selection for AI agents  v{ver}[/dim]
+"""
+
+_BANNER_PLAIN = """
+  _                        _
+ | |__  _ __ ___  ___  __| |
+ | '_ \\| '__/ _ \\/ _ \\/ _` |
+ | |_) | | |  __/  __/ (_| |
+ |_.__/|_|  \\___|\\___|\\__,_|
+  Darwinian selection for AI agents  v{ver}
+"""
+
+
+def _print_banner(console: "Console | None" = None) -> None:
+    """Print the ASCII art banner."""
+    if console is not None and _RICH_AVAILABLE:
+        console.print(_BANNER_RICH.format(ver=__version__))
+    else:
+        click.echo(_BANNER_PLAIN.format(ver=__version__))
+
+
 def _require_rich() -> Console:
     """Return a Rich Console or exit with an install hint."""
     if not _RICH_AVAILABLE:
@@ -230,13 +257,7 @@ def init(arena: str, adapter: str) -> None:
         f.write(config_text)
 
     # --- Welcome banner ---------------------------------------------------
-    banner = Text()
-    banner.append("\n  breed", style="bold magenta")
-    banner.append(" v" + __version__, style="dim")
-    banner.append("  --  ", style="dim")
-    banner.append("Evolving agents through Darwinian selection\n", style="italic cyan")
-
-    console.print(Panel(banner, border_style="bright_magenta", padding=(0, 2)))
+    _print_banner(console)
 
     tree = Tree("[bold green]Project initialised[/]", guide_style="dim")
     tree.add("[dim]breed.yaml[/]       -- configuration")
@@ -326,12 +347,7 @@ def _build_rich_display(
     outer.add_column()
 
     # --- banner ---
-    banner_text = Text()
-    banner_text.append(" breed", style="bold bright_magenta")
-    banner_text.append(f" v{__version__}", style="dim")
-    banner_text.append("  --  ", style="dim")
-    banner_text.append("Evolving agents", style="italic cyan")
-    outer.add_row(Panel(banner_text, border_style="bright_magenta", padding=(0, 1)))
+    outer.add_row(Text.from_markup(_BANNER_RICH.format(ver=__version__)))
 
     # --- progress info ---
     pct = (current_generation / total_generations * 100) if total_generations > 0 else 0
