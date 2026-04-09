@@ -5,22 +5,23 @@ build-backend = "hatchling.build"
 [project]
 name = "agentbreed"
 version = "0.1.0"
-description = "Evolve AI agents through Darwinian selection. Track lineage. Benchmark generations."
+description = "Evolve any AI agent through Darwinian selection. pip install and add 3 lines to your project."
 requires-python = ">=3.11"
 license = "MIT"
 keywords = ["ai", "agents", "evolution", "breeding", "darwinian", "llm", "optimization"]
 dependencies = [
     "pydantic>=2.0",
-    "click>=8.0",
     "pyyaml>=6.0",
-    "rich>=13.0",
 ]
 
 [project.optional-dependencies]
+cli = ["click>=8.0", "rich>=13.0"]
 anthropic = ["anthropic>=0.52.0"]
 openai = ["openai>=1.30"]
 charts = ["matplotlib>=3.8"]
 all = [
+    "click>=8.0",
+    "rich>=13.0",
     "anthropic>=0.52.0",
     "openai>=1.30",
     "matplotlib>=3.8",

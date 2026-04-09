@@ -363,6 +363,130 @@ DEFAULT_GENE_TEMPLATES: dict[str, dict[str, Any]] = {
 # Random genome factory
 # ---------------------------------------------------------------------------
 
+def _resolve_gene_type(raw_type: GeneType | str) -> GeneType:
+    """Convert a string or GeneType enum to a GeneType.
+
+    Supports both ``GeneType.TEXT`` and ``"text"`` style inputs.
+
+    Args:
+        raw_type: A GeneType enum value or its string name (case-insensitive).
+
+    Returns:
+        The resolved GeneType enum member.
+
+    Raises:
+        ValueError: If the string does not map to any GeneType.
+    """
+    if isinstance(raw_type, GeneType):
+        return raw_type
+    if isinstance(raw_type, str):
+        try:
+            return GeneType(raw_type.lower())
+        except ValueError:
+            valid = [t.value for t in GeneType]
+            raise ValueError(
+                f"Unknown gene type '{raw_type}'. Valid types: {valid}"
+            ) from None
+    raise TypeError(f"Expected GeneType or str, got {type(raw_type)}")
+
+
+def create_genome_from_template(
+    template: dict[str, dict[str, Any]],
+    seed: int | None = None,
+) -> Genome:
+    """Create a genome from a user-defined gene template.
+
+    The template format mirrors :data:`DEFAULT_GENE_TEMPLATES` but accepts
+    arbitrary gene names.  The ``type`` field can be either a :class:`GeneType`
+    enum value or a lowercase string (``"text"``, ``"enum"``, ``"float"``,
+    ``"set"``, ``"numeric_vector"``).
+
+    Template format::
+
+        {
+            "my_gene_name": {
+                "type": GeneType.TEXT,   # or "text"
+                "templates": ["template 1", "template 2"],
+                "mutation_rate": 0.15,
+            },
+            "my_float_gene": {
+                "type": GeneType.FLOAT,  # or "float"
+                "range": (0.0, 1.0),
+                "mutation_rate": 0.1,
+            },
+        }
+
+    Args:
+        template: Mapping of gene name to gene specification dict.
+        seed: Optional RNG seed for reproducibility.
+
+    Returns:
+        A fully-populated :class:`Genome` with generation 0.
+    """
+    rng = random.Random(seed)
+    genes: dict[str, Gene] = {}
+
+    for gene_name, spec in template.items():
+        gene_type = _resolve_gene_type(spec["type"])
+        mutation_rate: float = spec.get("mutation_rate", 0.1)
+
+        if gene_type == GeneType.TEXT:
+            templates: list[str] = spec["templates"]
+            value = rng.choice(templates)
+            genes[gene_name] = Gene(
+                name=gene_name,
+                type=gene_type,
+                value=value,
+                mutation_rate=mutation_rate,
+            )
+
+        elif gene_type == GeneType.ENUM:
+            options: list[str] = spec["options"]
+            value = rng.choice(options)
+            genes[gene_name] = Gene(
+                name=gene_name,
+                type=gene_type,
+                value=value,
+                mutation_rate=mutation_rate,
+                options=options,
+            )
+
+        elif gene_type == GeneType.FLOAT:
+            lo, hi = spec["range"]
+            value = rng.uniform(lo, hi)
+            genes[gene_name] = Gene(
+                name=gene_name,
+                type=gene_type,
+                value=round(value, 6),
+                mutation_rate=mutation_rate,
+                range=(lo, hi),
+            )
+
+        elif gene_type == GeneType.SET:
+            available: list[str] = spec["available"]
+            k = rng.randint(1, len(available))
+            value = sorted(rng.sample(available, k))
+            genes[gene_name] = Gene(
+                name=gene_name,
+                type=gene_type,
+                value=value,
+                mutation_rate=mutation_rate,
+                available=available,
+            )
+
+        elif gene_type == GeneType.NUMERIC_VECTOR:
+            vec_templates: list[list[float]] = spec["templates"]
+            value = list(rng.choice(vec_templates))
+            genes[gene_name] = Gene(
+                name=gene_name,
+                type=gene_type,
+                value=value,
+                mutation_rate=mutation_rate,
+            )
+
+    return Genome(genes=genes)
+
+
 def create_random_genome(seed: int | None = None) -> Genome:
     """Create a genome with randomised gene values drawn from the default templates.
 

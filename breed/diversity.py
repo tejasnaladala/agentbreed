@@ -6,7 +6,9 @@ random immigrants when diversity drops.
 
 from __future__ import annotations
 
-from breed.genome import Genome, create_random_genome
+from typing import Any
+
+from breed.genome import Genome, create_genome_from_template, create_random_genome
 
 
 def novelty_score(population: list[Genome]) -> dict[str, float]:
@@ -42,6 +44,7 @@ def inject_immigrants(
     population: list[Genome],
     count: int,
     seed: int | None = None,
+    gene_template: dict[str, dict[str, Any]] | None = None,
 ) -> list[Genome]:
     """Add *count* random genomes to the population to boost diversity.
 
@@ -53,6 +56,9 @@ def inject_immigrants(
         count: Number of random immigrants to add.
         seed: Optional base seed -- each immigrant uses seed + i for
             reproducibility.
+        gene_template: Optional custom gene template dict.  If provided, new
+            immigrants use :func:`create_genome_from_template` instead of
+            the default template.
 
     Returns:
         A new list with the original population followed by *count* immigrants.
@@ -63,6 +69,11 @@ def inject_immigrants(
     new_population = list(population)
     for i in range(count):
         immigrant_seed = (seed + i) if seed is not None else None
-        new_population.append(create_random_genome(seed=immigrant_seed))
+        if gene_template is not None:
+            new_population.append(
+                create_genome_from_template(gene_template, seed=immigrant_seed)
+            )
+        else:
+            new_population.append(create_random_genome(seed=immigrant_seed))
 
     return new_population

@@ -11,7 +11,12 @@ import random
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal, Sequence
 
-from breed.genome import Genome, create_random_genome
+from breed.genome import (
+    GeneType,
+    Genome,
+    create_genome_from_template,
+    create_random_genome,
+)
 from breed.operators.crossover import (
     component_swap,
     uniform_crossover,
@@ -19,9 +24,12 @@ from breed.operators.crossover import (
 )
 from breed.operators.mutation import (
     calibration_adjustment,
+    mutate_gene,
     parameter_jitter,
     prompt_perturb_simple,
+    set_swap,
     strategy_mutation,
+    text_swap,
     tool_swap,
     vector_jitter,
 )
@@ -70,10 +78,13 @@ class Population:
         The current genomes in this population.
     generation : int
         Zero-indexed generation counter.  Incremented after ``breed``.
+    gene_template : dict | None
+        Optional custom gene template for creating new genomes (immigrants).
     """
 
     members: list[Genome] = field(default_factory=list)
     generation: int = 0
+    gene_template: dict[str, dict[str, Any]] | None = field(default=None, repr=False)
 
     # -- convenience property ------------------------------------------------
 
@@ -85,7 +96,12 @@ class Population:
     # -- factory -------------------------------------------------------------
 
     @classmethod
-    def spawn(cls, size: int, seed: int | None = None) -> Population:
+    def spawn(
+        cls,
+        size: int,
+        seed: int | None = None,
+        gene_template: dict[str, dict[str, Any]] | None = None,
+    ) -> Population:
         """Create a new random population of *size* genomes.
 
         Parameters
@@ -94,14 +110,27 @@ class Population:
             Number of genomes to create.
         seed:
             Optional RNG seed for reproducibility.
+        gene_template:
+            Optional custom gene template dict.  If provided, uses
+            :func:`create_genome_from_template` instead of the default
+            10-gene forecasting template.
         """
         if size < 1:
             raise ValueError("Population size must be >= 1")
         rng = random.Random(seed)
-        members = [
-            create_random_genome(seed=rng.randint(0, 2**63)) for _ in range(size)
-        ]
-        return cls(members=members, generation=0)
+        if gene_template is not None:
+            members = [
+                create_genome_from_template(
+                    gene_template, seed=rng.randint(0, 2**63)
+                )
+                for _ in range(size)
+            ]
+        else:
+            members = [
+                create_random_genome(seed=rng.randint(0, 2**63))
+                for _ in range(size)
+            ]
+        return cls(members=members, generation=0, gene_template=gene_template)
 
     # -- selection -----------------------------------------------------------
 
@@ -261,7 +290,10 @@ class Population:
         if count < 0:
             raise ValueError(f"count must be >= 0, got {count}")
 
-        result = inject_immigrants(list(self.members), count, seed=seed)
+        result = inject_immigrants(
+            list(self.members), count, seed=seed,
+            gene_template=self.gene_template,
+        )
         # inject_immigrants returns original + new; we only want the new tail
         self.members = result
 
@@ -272,18 +304,43 @@ class Population:
 
 
 def _apply_random_mutation(genome: Genome, rng: random.Random) -> Genome:
-    """Pick a random mutation operator and apply it, handling signature differences."""
+    """Pick a random mutation operator and apply it, handling signature differences.
+
+    For genomes that contain the standard default gene names, the legacy
+    hardcoded operators are included as candidates.  For *any* genome
+    (including custom templates), type-based generic mutations are also
+    offered so that every gene has a chance of being mutated regardless of
+    its name.
+    """
     mut_seed = rng.randint(0, 2**63)
 
     # Build a combined list of (callable, extra_kwargs) entries
     candidates: list[tuple[Callable[..., Genome], dict[str, Any]]] = []
 
+    # Legacy hardcoded operators (backward compatibility for default genomes)
     for op in _GENOME_ONLY_MUTATION_OPS:
-        candidates.append((op, {}))
+        # Only include if the gene they target actually exists
+        # tool_swap -> tool_policy, prompt_perturb_simple -> prompt_template,
+        # calibration_adjustment -> calibration_rule
+        try:
+            _target_map: dict[Callable[..., Genome], str] = {
+                tool_swap: "tool_policy",
+                prompt_perturb_simple: "prompt_template",
+                calibration_adjustment: "calibration_rule",
+            }
+            target_gene = _target_map.get(op)
+            if target_gene is None or target_gene in genome.genes:
+                candidates.append((op, {}))
+        except Exception:
+            candidates.append((op, {}))
 
     for op, gene_name in _GENE_TARGETED_MUTATIONS:
         if gene_name in genome.genes:
             candidates.append((op, {"gene_name": gene_name}))
+
+    # Generic type-based mutations for ALL genes in the genome
+    for gene_name, gene in genome.genes.items():
+        candidates.append((mutate_gene, {"gene_name": gene_name}))
 
     if not candidates:
         # Fallback: no applicable mutations, return unchanged

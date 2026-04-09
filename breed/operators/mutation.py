@@ -11,6 +11,8 @@ import math
 import random
 import uuid
 
+from typing import Any
+
 from breed.genome import (
     DEFAULT_GENE_TEMPLATES,
     Gene,
@@ -71,30 +73,31 @@ def parameter_jitter(
 
 
 # ---------------------------------------------------------------------------
-# 2. tool_swap  (SET gene -- tool_policy)
+# 2. set_swap  (generic SET gene mutation)
 # ---------------------------------------------------------------------------
 
-def tool_swap(
+def set_swap(
     genome: Genome,
+    gene_name: str,
     seed: int | None = None,
 ) -> Genome:
-    """Add, remove, or swap one tool in the ``tool_policy`` SET gene.
+    """Add, remove, or swap one item in any SET gene.
 
     The operation is chosen uniformly at random from the three possibilities
     (add / remove / swap), subject to feasibility (e.g. cannot remove from an
-    empty set, cannot add when all tools are already present).
+    empty set, cannot add when all items are already present).
 
     Args:
         genome: Source genome (not modified).
+        gene_name: Name of the SET gene to mutate.
         seed: Optional RNG seed.
 
     Returns:
-        A new Genome with a modified tool_policy.
+        A new Genome with a modified SET gene.
 
     Raises:
-        ValueError: If ``tool_policy`` gene is missing or not a SET.
+        ValueError: If the gene is missing, not a SET, or has no available list.
     """
-    gene_name = "tool_policy"
     if gene_name not in genome.genes:
         raise ValueError(f"Gene '{gene_name}' not found in genome")
     gene = genome.genes[gene_name]
@@ -140,6 +143,27 @@ def tool_swap(
     return mutated
 
 
+def tool_swap(
+    genome: Genome,
+    seed: int | None = None,
+) -> Genome:
+    """Add, remove, or swap one tool in the ``tool_policy`` SET gene.
+
+    Backward-compatible wrapper around :func:`set_swap`.
+
+    Args:
+        genome: Source genome (not modified).
+        seed: Optional RNG seed.
+
+    Returns:
+        A new Genome with a modified tool_policy.
+
+    Raises:
+        ValueError: If ``tool_policy`` gene is missing or not a SET.
+    """
+    return set_swap(genome, gene_name="tool_policy", seed=seed)
+
+
 # ---------------------------------------------------------------------------
 # 3. strategy_mutation  (ENUM gene)
 # ---------------------------------------------------------------------------
@@ -180,8 +204,74 @@ def strategy_mutation(
 
 
 # ---------------------------------------------------------------------------
-# 4. prompt_perturb_simple  (TEXT gene -- prompt_template or decision_heuristic)
+# 4. text_swap  (generic TEXT gene mutation)
 # ---------------------------------------------------------------------------
+
+def text_swap(
+    genome: Genome,
+    gene_name: str,
+    templates: list[str] | None = None,
+    seed: int | None = None,
+) -> Genome:
+    """Swap a TEXT gene to a different template.
+
+    If *templates* is provided, chooses an alternative from that list.
+    Otherwise falls back to :data:`DEFAULT_GENE_TEMPLATES` if the gene name
+    exists there.  As a last resort, shuffles the sentences in the current
+    value to produce a variant.
+
+    Args:
+        genome: Source genome (not modified).
+        gene_name: Name of the TEXT gene to mutate.
+        templates: Optional list of alternative text values.
+        seed: Optional RNG seed.
+
+    Returns:
+        A new Genome with a different TEXT gene value.
+
+    Raises:
+        ValueError: If the gene is missing or not a TEXT type.
+    """
+    if gene_name not in genome.genes:
+        raise ValueError(f"Gene '{gene_name}' not found in genome")
+    gene = genome.genes[gene_name]
+    if gene.type != GeneType.TEXT:
+        raise ValueError(f"Gene '{gene_name}' is {gene.type}, expected TEXT")
+
+    rng = random.Random(seed)
+
+    # Resolve the template list to pick from
+    candidate_templates = templates
+    if candidate_templates is None and gene_name in DEFAULT_GENE_TEMPLATES:
+        default_spec = DEFAULT_GENE_TEMPLATES[gene_name]
+        if "templates" in default_spec:
+            candidate_templates = default_spec["templates"]
+
+    if candidate_templates is not None:
+        alternatives = [t for t in candidate_templates if t != gene.value]
+        if alternatives:
+            new_val = rng.choice(alternatives)
+            mutated = _clone_genome(genome)
+            mutated.genes[gene_name] = gene.model_copy(
+                update={"value": new_val}, deep=True
+            )
+            return mutated
+
+    # Last resort: shuffle sentences in the current value
+    sentences = [s.strip() for s in str(gene.value).split(".") if s.strip()]
+    if len(sentences) > 1:
+        rng.shuffle(sentences)
+        new_val = ". ".join(sentences) + "."
+    else:
+        # Shuffle words as final fallback
+        words = str(gene.value).split()
+        rng.shuffle(words)
+        new_val = " ".join(words)
+
+    mutated = _clone_genome(genome)
+    mutated.genes[gene_name] = gene.model_copy(update={"value": new_val}, deep=True)
+    return mutated
+
 
 def prompt_perturb_simple(
     genome: Genome,
@@ -189,7 +279,7 @@ def prompt_perturb_simple(
 ) -> Genome:
     """Replace the ``prompt_template`` TEXT gene with a different template.
 
-    Uses the default template list from :data:`DEFAULT_GENE_TEMPLATES`.
+    Backward-compatible wrapper around :func:`text_swap`.
 
     Args:
         genome: Source genome (not modified).
@@ -201,21 +291,7 @@ def prompt_perturb_simple(
     Raises:
         ValueError: If ``prompt_template`` gene is missing.
     """
-    gene_name = "prompt_template"
-    if gene_name not in genome.genes:
-        raise ValueError(f"Gene '{gene_name}' not found in genome")
-    gene = genome.genes[gene_name]
-
-    templates: list[str] = DEFAULT_GENE_TEMPLATES[gene_name]["templates"]
-    rng = random.Random(seed)
-    alternatives = [t for t in templates if t != gene.value]
-    if not alternatives:
-        return _clone_genome(genome)
-
-    new_val = rng.choice(alternatives)
-    mutated = _clone_genome(genome)
-    mutated.genes[gene_name] = gene.model_copy(update={"value": new_val}, deep=True)
-    return mutated
+    return text_swap(genome, gene_name="prompt_template", seed=seed)
 
 
 # ---------------------------------------------------------------------------
@@ -278,6 +354,8 @@ def calibration_adjustment(
 ) -> Genome:
     """Replace the ``calibration_rule`` TEXT gene with a different template.
 
+    Backward-compatible wrapper around :func:`text_swap`.
+
     Args:
         genome: Source genome (not modified).
         seed: Optional RNG seed.
@@ -288,18 +366,63 @@ def calibration_adjustment(
     Raises:
         ValueError: If ``calibration_rule`` gene is missing.
     """
-    gene_name = "calibration_rule"
+    return text_swap(genome, gene_name="calibration_rule", seed=seed)
+
+
+# ---------------------------------------------------------------------------
+# 7. mutate_gene  (generic mutation by gene type)
+# ---------------------------------------------------------------------------
+
+def mutate_gene(
+    genome: Genome,
+    gene_name: str,
+    templates: list[Any] | None = None,
+    strength: float = 0.1,
+    seed: int | None = None,
+) -> Genome:
+    """Generic mutation that works on ANY gene by dispatching on its type.
+
+    Behaviour per gene type:
+
+    * **TEXT**: If *templates* is provided, swap to a random alternative.
+      Otherwise, shuffle words in the current value.
+    * **ENUM**: Swap to a random alternative option.
+    * **FLOAT**: Apply Gaussian jitter (delegates to :func:`parameter_jitter`).
+    * **SET**: Add/remove/swap one item (delegates to :func:`set_swap`).
+    * **NUMERIC_VECTOR**: Apply noise and renormalise (delegates to
+      :func:`vector_jitter`).
+
+    Args:
+        genome: Source genome (not modified).
+        gene_name: Name of the gene to mutate.
+        templates: Optional alternatives for TEXT genes.
+        strength: Jitter strength for FLOAT / NUMERIC_VECTOR genes.
+        seed: Optional RNG seed.
+
+    Returns:
+        A new Genome with the mutated gene.
+
+    Raises:
+        ValueError: If the gene does not exist.
+    """
     if gene_name not in genome.genes:
         raise ValueError(f"Gene '{gene_name}' not found in genome")
+
     gene = genome.genes[gene_name]
 
-    templates: list[str] = DEFAULT_GENE_TEMPLATES[gene_name]["templates"]
-    rng = random.Random(seed)
-    alternatives = [t for t in templates if t != gene.value]
-    if not alternatives:
-        return _clone_genome(genome)
+    if gene.type == GeneType.TEXT:
+        return text_swap(genome, gene_name, templates=templates, seed=seed)
 
-    new_val = rng.choice(alternatives)
-    mutated = _clone_genome(genome)
-    mutated.genes[gene_name] = gene.model_copy(update={"value": new_val}, deep=True)
-    return mutated
+    if gene.type == GeneType.ENUM:
+        return strategy_mutation(genome, gene_name, seed=seed)
+
+    if gene.type == GeneType.FLOAT:
+        return parameter_jitter(genome, gene_name, strength=strength, seed=seed)
+
+    if gene.type == GeneType.SET:
+        return set_swap(genome, gene_name, seed=seed)
+
+    if gene.type == GeneType.NUMERIC_VECTOR:
+        return vector_jitter(genome, gene_name, strength=strength, seed=seed)
+
+    raise ValueError(f"Unsupported gene type: {gene.type}")

@@ -112,11 +112,13 @@ class BreedingEngine:
         arena: Arena,
         adapter: Adapter,
         event_bus: EventBus | None = None,
+        gene_template: dict[str, dict[str, Any]] | None = None,
     ) -> None:
         self._config = config
         self._arena = arena
         self._adapter = adapter
         self._event_bus = event_bus or EventBus()
+        self._gene_template = gene_template
         self._state = _EngineState()
         self._pause_event = asyncio.Event()
         self._pause_event.set()  # not paused initially
@@ -217,7 +219,9 @@ class BreedingEngine:
         # Spawn initial population
         spawn_seed = self._next_seed()
         self._state.population = Population.spawn(
-            self._config.population_size, seed=spawn_seed
+            self._config.population_size,
+            seed=spawn_seed,
+            gene_template=self._gene_template,
         )
 
         # Generate tasks once (reused across generations for consistency)
@@ -263,7 +267,9 @@ class BreedingEngine:
         if self._state.population is None:
             spawn_seed = self._next_seed()
             self._state.population = Population.spawn(
-                self._config.population_size, seed=spawn_seed
+                self._config.population_size,
+                seed=spawn_seed,
+                gene_template=self._gene_template,
             )
 
         tasks = await self._arena.generate_tasks(
