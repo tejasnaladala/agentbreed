@@ -1,0 +1,90 @@
+# Gene template v1 - LOCKED for main-track experiments
+# Committed 2026-04-10. Do not modify without amending the preregistration.
+#
+# Nine genes spanning five type categories. Chosen to (a) cover the
+# dimensions a practitioner would plausibly tune for an LLM forecasting
+# agent, (b) include at least one gene per type so the typed-genome
+# framework is exercised on heterogeneous data, and (c) contain known
+# 2-way interaction structure in the synthetic benchmark so epistasis
+# decomposition has signal to detect.
+
+schema_version: "1.0"
+locked_date: "2026-04-10"
+rationale: |
+  This is the canonical gene template for all main-track experiments.
+  The 9 genes were chosen based on the workshop-phase template plus
+  one lesson from peer review: the original prompt_template was an
+  ENUM in the workshop phase because we wanted to isolate the
+  prompt-evolution baseline cleanly. That is retained here.
+  Type coverage:
+    - TEXT          : none in synthetic setting (handled in real-LLM gene_template_v1_real.yaml)
+    - ENUM          : prompt_template, decision_heuristic, calibration_rule,
+                      decomposition_style, memory_structure, answer_format
+    - FLOAT         : temperature, risk_threshold
+    - SET           : tool_policy
+    - NUMERIC_VECTOR: (deferred for now; epistasis works fine with ENUM-heavy template)
+
+genes:
+  prompt_template:
+    type: enum
+    options:
+      - superforecaster_decompose
+      - calibrated_bayesian
+      - pro_con_analytical
+      - outside_view_first
+      - market_trader
+    mutation_rate: 0.20
+
+  decision_heuristic:
+    type: enum
+    options:
+      - expected_value
+      - minimax_regret
+      - recognition_primed
+      - fermi_decomposition
+      - competing_hypotheses
+    mutation_rate: 0.15
+
+  calibration_rule:
+    type: enum
+    options:
+      - shrink_to_base_rate
+      - tetlock_curve_check
+      - extremeness_aversion
+      - three_interval_check
+    mutation_rate: 0.15
+
+  decomposition_style:
+    type: enum
+    options:
+      - reference_class
+      - causal_chain
+      - scenario_tree
+      - fermi
+      - analogy
+    mutation_rate: 0.15
+
+  memory_structure:
+    type: enum
+    options: [sliding_window, episodic, semantic, graph, none]
+    mutation_rate: 0.10
+
+  answer_format:
+    type: enum
+    options: [probability_only, probability_with_reasoning, structured_json]
+    mutation_rate: 0.10
+
+  tool_policy:
+    type: set
+    available: [web_search, web_fetch, calculator, code_exec, read, write]
+    mutation_rate: 0.10
+
+  temperature:
+    type: float
+    range: [0.0, 1.5]
+    mutation_rate: 0.10
+
+  risk_threshold:
+    type: float
+    range: [0.01, 0.50]
+    mutation_rate: 0.10
