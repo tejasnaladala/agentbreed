@@ -1,6 +1,10 @@
 # Reproducibility Instructions
 
-This document explains how to reproduce every number, figure, and table in the paper from a fresh clone.
+This document explains how to reproduce every number, figure, and table in the papers from a fresh clone.
+
+> **Two papers in this repo.** Section 3–8 reproduce the **workshop draft** (`paper/05_draft/paper.md`, single-domain pilot). Section 12 below reproduces the **main-track draft** (`paper/05_draft/paper_main_track.md`, 3 domains × 10 methods × 20 seeds, preregistered H1/H2/H3). If you are here for the main-track paper, skip to §12.
+>
+> For the explicit list of human-only steps (venue selection, author list, credentials, launch sequence), read `paper/06_reproducibility/MANUAL_STEPS.md`.
 
 ## 1. Environment
 
@@ -146,3 +150,81 @@ Expected cost for a single full run with 8 seeds, 7 methods, 20 pop × 15 gen, 5
 ## 11. Contact
 
 Issues and questions: [REPO URL]/issues
+
+---
+
+## 12. Main-track paper reproduction
+
+`paper/05_draft/paper_main_track.md` is the main-track draft with preregistered H1/H2/H3 (locked 2026-04-10). It subsumes the workshop pipeline; the workshop numbers in §3–8 are preserved only for historical comparison.
+
+### 12.1 Run every main-track experiment
+
+```bash
+python -u paper/03_experiments/scripts/run_main_track_experiments.py --which all
+```
+
+Expected runtime: **~400 seconds** on a single CPU. Produces per-run JSON files under:
+
+```
+paper/04_results/E1/           # 600 runs: 3 domains × 10 methods × 20 seeds
+paper/04_results/E_decisive/   # 480 runs: 2 domains × 2 methods × 6 K-values × 20 seeds
+paper/04_results/E2/           # 100 runs: gene dropout ablation
+paper/04_results/E3/           # Sobol epistasis (n_base=512 by default)
+paper/04_results/E_transfer/   # 3×3 champion transfer matrix
+```
+
+If the runner stalls on Windows (documented Git Bash subprocess issue after ~200 runs), chunk it:
+
+```bash
+python -u paper/03_experiments/scripts/run_chunk.py --max-runs 200
+```
+
+…and re-invoke until "no remaining runs."
+
+### 12.2 Run the main-track analysis
+
+```bash
+python -u paper/03_experiments/scripts/analyze_main_track.py
+```
+
+Expected runtime: **~5 seconds**. Produces:
+
+- `paper/04_results/tables/main_track/table_E1_summary.md`
+- `paper/04_results/tables/main_track/table_E1_comparisons.md` ← the centerpiece
+- `paper/04_results/tables/main_track/table_E_decisive.md`
+- `paper/04_results/tables/main_track/table_transfer.md`
+- `paper/04_results/figures/main_track/fig_ablation_{coding,forecasting,knowledge}.{pdf,png}`
+- `paper/04_results/figures/main_track/fig_decisive_{coding,forecasting}.{pdf,png}`
+- `paper/04_results/figures/main_track/fig_e2_dropout.{pdf,png}`
+- `paper/04_results/figures/main_track/fig_transfer_matrix.{pdf,png}`
+- `paper/04_results/analysis_main_track.json`
+
+### 12.3 Verify the headline numbers
+
+Open `paper/04_results/tables/main_track/table_E1_comparisons.md` and confirm these cells exist:
+
+| Domain | Baseline | Diff | Holm *p* | *d<sub>z</sub>* |
+|---|---|---|---|---|
+| coding | Prompt-only evolution | +0.4327 | 0.0000 | 6.064 |
+| coding | Static ensemble | +0.2642 | 0.0000 | 3.573 |
+| coding | Best random init | +0.1115 | 0.0008 | 1.087 |
+| coding | Mutation only | +0.0368 | 0.5282 (ns) | 0.352 |
+| coding | Random search | −0.0102 | 0.7437 (ns) | −0.111 |
+| coding | bayesian_opt | −0.0350 | 0.4655 (ns) | −0.395 |
+| knowledge | Prompt-only evolution | +0.3187 | 0.0000 | 3.098 |
+| knowledge | Static ensemble | +0.1378 | 0.0001 | 1.349 |
+| forecasting | Static ensemble | +0.0245 | 0.0137 | 0.827 |
+
+Also verify the pooled cross-domain aggregate (in `analysis_main_track.json` under `aggregate.full_vs_prompt_only`):
+
+- Mean diff `+0.2549`, 95% CI `[+0.206, +0.303]`, *t* `11.5`, *p* `≈ 1e-14`, *d<sub>z</sub>* `1.322`.
+
+These are the H1 confirmation numbers reported in the main-track abstract.
+
+### 12.4 Preregistration check
+
+```bash
+git log --follow paper/01_corpus/preregistration.md
+```
+
+The first commit of `preregistration.md` must predate any file under `paper/04_results/E1/`, `E_decisive/`, `E2/`, `E3/`, or `E_transfer/`. This is the audit trail that makes H1/H2/H3 confirmatory rather than exploratory.
