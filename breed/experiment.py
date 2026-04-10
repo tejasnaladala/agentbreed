@@ -112,6 +112,7 @@ KNOWN_METHODS: tuple[str, ...] = (
     "prompt_only_evolution",
     "bayesian_opt",
     "successive_halving",
+    "coordinate_descent",
 )
 
 
@@ -500,6 +501,8 @@ class ExperimentRunner:
             return await self._run_bayesian_opt(seed)
         if method == "successive_halving":
             return await self._run_successive_halving(seed)
+        if method == "coordinate_descent":
+            return await self._run_coordinate_descent(seed)
         raise ValueError(
             f"Unknown method: {method!r}. Valid methods: {list(KNOWN_METHODS)}"
         )
@@ -1386,6 +1389,158 @@ class ExperimentRunner:
                 "rungs": rung_details,
                 "champion_genes": {
                     name: gene.value for name, gene in champion.genes.items()
+                },
+            },
+        )
+
+    # ----------------------------------------------------------------------
+    # Coordinate descent baseline
+    # ----------------------------------------------------------------------
+
+    async def _run_coordinate_descent(self, seed: int) -> RunResult:
+        """Greedy coordinate descent over a single incumbent genome.
+
+        Implementation notes
+        --------------------
+        * Starts from a random genome spawned with the per-seed RNG.
+        * Iterates over genes in a fixed random order. For each gene, tries
+          up to ``_CD_MAX_ALTERNATIVES`` alternative values drawn from the
+          gene's domain and keeps the change if it improves the train-set
+          fitness. For ENUM / SET genes the alternatives enumerate the
+          option list; for FLOAT genes the alternatives are linearly
+          spaced in [lo, hi].
+        * Budget matching: evaluations are counted against
+          ``compute_budget``. The loop stops as soon as the budget is
+          exhausted, regardless of whether a full sweep completed.
+
+        This baseline neutralizes the "maybe greedy local search would
+        exploit the interaction structure" reviewer objection.
+        """
+        self._reset_counters()
+        start = time.perf_counter()
+        rng = _make_seed_chain(seed)
+
+        adapter = self._build_adapter()
+        train_arena = self._build_arena(self.train_tasks)
+        budget = self.config.compute_budget
+
+        # Initialize the incumbent
+        incumbent = Population.spawn(
+            1, seed=rng.randint(0, 2**31 - 1), gene_template=self.gene_template
+        ).members[0]
+
+        async def _score(genome: Genome) -> float:
+            r = await train_arena.evaluate(genome, adapter, self.train_tasks)
+            self._eval_count += 1
+            return float(r.fitness_score)
+
+        incumbent_fit = await _score(incumbent)
+        fitness_curve: list[float] = [incumbent_fit]
+        evals_used = 1
+
+        # Fix a random order over genes so determinism is preserved.
+        gene_names = list(self.gene_template.keys())
+        rng.shuffle(gene_names)
+
+        _CD_MAX_ALTERNATIVES = 4
+
+        sweeps_completed = 0
+        sweeps_without_improvement = 0
+
+        while evals_used < budget and sweeps_without_improvement < 2:
+            improved_this_sweep = False
+            for gene_name in gene_names:
+                if evals_used >= budget:
+                    break
+                spec = self.gene_template[gene_name]
+                gtype = str(spec.get("type", "")).lower()
+
+                # Build alternative values for this gene
+                alternatives: list[Any] = []
+                current_val = incumbent.genes[gene_name].value
+                if gtype in {"enum"}:
+                    options = list(spec.get("options") or [])
+                    alternatives = [o for o in options if o != current_val]
+                elif gtype in {"float"}:
+                    lo, hi = spec.get("range", (0.0, 1.0))
+                    # 4 linearly spaced candidates across the range
+                    n_steps = _CD_MAX_ALTERNATIVES
+                    step_vals = [
+                        lo + (hi - lo) * (k + 0.5) / n_steps for k in range(n_steps)
+                    ]
+                    alternatives = [v for v in step_vals if abs(v - current_val) > 1e-9]
+                elif gtype in {"set"}:
+                    available = list(spec.get("available") or [])
+                    cur_set = set(current_val or [])
+                    # Each alternative toggles one element on/off
+                    alternatives = []
+                    for item in available:
+                        if item in cur_set:
+                            new_val = sorted(cur_set - {item})
+                        else:
+                            new_val = sorted(cur_set | {item})
+                        if tuple(new_val) != tuple(sorted(current_val)):
+                            alternatives.append(new_val)
+                else:
+                    continue  # TEXT / NUMERIC_VECTOR skipped for simplicity
+
+                # Cap and shuffle so seed determines exploration order
+                rng.shuffle(alternatives)
+                alternatives = alternatives[:_CD_MAX_ALTERNATIVES]
+
+                for alt_val in alternatives:
+                    if evals_used >= budget:
+                        break
+                    # Make a candidate with the single-gene change
+                    new_genes = dict(incumbent.genes)
+                    old_gene = new_genes[gene_name]
+                    new_genes[gene_name] = old_gene.model_copy(update={"value": alt_val})
+                    candidate = incumbent.model_copy(
+                        update={
+                            "genes": new_genes,
+                            "genome_id": _new_genome_id(),
+                            "generation": incumbent.generation + 1,
+                            "parents": [incumbent.genome_id],
+                        }
+                    )
+                    cand_fit = await _score(candidate)
+                    evals_used += 1
+                    if cand_fit > incumbent_fit:
+                        incumbent = candidate
+                        incumbent_fit = cand_fit
+                        improved_this_sweep = True
+                        fitness_curve.append(incumbent_fit)
+                        break  # accept improvement and move to next gene
+                else:
+                    fitness_curve.append(incumbent_fit)
+
+            sweeps_completed += 1
+            if improved_this_sweep:
+                sweeps_without_improvement = 0
+            else:
+                sweeps_without_improvement += 1
+
+        # Final per-test evaluation of the incumbent
+        per_q_scores = await self._evaluate_on_test(incumbent)
+        wall_clock = time.perf_counter() - start
+
+        return RunResult(
+            method="coordinate_descent",
+            seed=seed,
+            champion_genome_id=incumbent.genome_id,
+            champion_fitness=incumbent_fit,
+            per_question_scores=per_q_scores,
+            fitness_curve=fitness_curve,
+            wall_clock_seconds=wall_clock,
+            total_evaluations=self._eval_count,
+            api_calls=self._call_count,
+            metadata={
+                "compute_budget": self.config.compute_budget,
+                "evals_used": evals_used,
+                "sweeps_completed": sweeps_completed,
+                "max_alternatives_per_gene": _CD_MAX_ALTERNATIVES,
+                "champion_genes": {
+                    name: gene.value for name, gene in incumbent.genes.items()
                 },
             },
         )

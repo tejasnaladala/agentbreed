@@ -534,6 +534,180 @@ class TestResumeAndIntermediate:
 
 
 # ---------------------------------------------------------------------------
+# New baselines: bayesian_opt and successive_halving
+# ---------------------------------------------------------------------------
+
+
+def _new_baseline_config(
+    tmp_path: Path,
+    method: str,
+    seed: int,
+) -> ExperimentConfig:
+    return ExperimentConfig(
+        name=f"{method}_smoke",
+        seeds=[seed],
+        population_size=4,
+        generations=3,
+        elite_count=2,
+        mutation_rate=0.15,
+        immigration_rate=0.0,
+        selection_method="truncation",
+        tournament_size=2,
+        output_dir=str(tmp_path / method),
+        methods=[method],
+    )
+
+
+class TestBayesianOptBaseline:
+    """Smoke + reproducibility tests for the bayesian_opt baseline."""
+
+    async def test_runs_without_error(
+        self,
+        runner_factory,
+        tmp_path: Path,
+    ) -> None:
+        cfg = _new_baseline_config(tmp_path, "bayesian_opt", seed=11)
+        runner = runner_factory(cfg)
+        result = await runner.run(resume=False)
+
+        assert len(result.runs) == 1
+        run = result.runs[0]
+        assert run.method == "bayesian_opt"
+        assert len(run.per_question_scores) == 5
+        assert all(0.0 <= s <= 1.0 for s in run.per_question_scores)
+        # Must record at least one generation on the fitness curve.
+        assert len(run.fitness_curve) >= 1
+        # TPE-specific metadata must be present.
+        assert "tpe_split_fraction" in run.metadata
+        assert "tpe_warmup" in run.metadata
+
+    async def test_api_calls_match_budget(
+        self,
+        runner_factory,
+        tmp_path: Path,
+    ) -> None:
+        cfg = _new_baseline_config(tmp_path, "bayesian_opt", seed=13)
+        runner = runner_factory(cfg)
+        result = await runner.run(resume=False)
+
+        run = result.runs[0]
+        expected_budget = cfg.population_size * cfg.generations * len(
+            runner.train_tasks
+        ) + len(runner.test_tasks)  # +1 test-set eval at the end
+        # Within 20% tolerance (the +test is a small correction).
+        lower = expected_budget * 0.8
+        upper = expected_budget * 1.2
+        assert lower <= run.api_calls <= upper, (
+            f"api_calls={run.api_calls} outside [{lower}, {upper}]"
+        )
+
+    async def test_same_seed_same_result(
+        self,
+        runner_factory,
+        tmp_path: Path,
+    ) -> None:
+        cfg_a = _new_baseline_config(tmp_path / "a", "bayesian_opt", seed=17)
+        cfg_b = _new_baseline_config(tmp_path / "b", "bayesian_opt", seed=17)
+
+        runner_a = runner_factory(cfg_a)
+        runner_b = runner_factory(cfg_b)
+
+        result_a = await runner_a.run(resume=False)
+        result_b = await runner_b.run(resume=False)
+
+        run_a = result_a.runs[0]
+        run_b = result_b.runs[0]
+
+        assert run_a.champion_fitness == pytest.approx(run_b.champion_fitness)
+        assert run_a.per_question_scores == pytest.approx(
+            run_b.per_question_scores
+        )
+        assert run_a.api_calls == run_b.api_calls
+        assert run_a.total_evaluations == run_b.total_evaluations
+        assert run_a.fitness_curve == pytest.approx(run_b.fitness_curve)
+
+
+class TestSuccessiveHalvingBaseline:
+    """Smoke + reproducibility tests for the successive_halving baseline."""
+
+    async def test_runs_without_error(
+        self,
+        runner_factory,
+        tmp_path: Path,
+    ) -> None:
+        cfg = _new_baseline_config(tmp_path, "successive_halving", seed=21)
+        runner = runner_factory(cfg)
+        result = await runner.run(resume=False)
+
+        assert len(result.runs) == 1
+        run = result.runs[0]
+        assert run.method == "successive_halving"
+        assert len(run.per_question_scores) == 5
+        assert all(0.0 <= s <= 1.0 for s in run.per_question_scores)
+        assert len(run.fitness_curve) >= 1
+        # Multi-fidelity metadata must be present.
+        assert run.metadata.get("eta") == 3
+        assert "fidelity_schedule" in run.metadata
+        fidelity_schedule = run.metadata["fidelity_schedule"]
+        assert isinstance(fidelity_schedule, list)
+        assert len(fidelity_schedule) >= 1
+        # Fidelity schedule must be strictly non-decreasing.
+        for prev, curr in zip(fidelity_schedule, fidelity_schedule[1:]):
+            assert curr >= prev
+
+    async def test_api_calls_match_budget(
+        self,
+        runner_factory,
+        tmp_path: Path,
+    ) -> None:
+        cfg = _new_baseline_config(tmp_path, "successive_halving", seed=23)
+        runner = runner_factory(cfg)
+        result = await runner.run(resume=False)
+
+        run = result.runs[0]
+        # The task-level budget target is pop*gen*|train|.
+        n_train = len(runner.train_tasks)
+        expected_task_budget = (
+            cfg.population_size * cfg.generations * n_train
+        )
+        # Plus the final test-set pass (|test| calls).
+        upper = expected_task_budget * 1.2 + len(runner.test_tasks)
+        lower = expected_task_budget * 0.5  # allow early-stop when out of budget
+        assert lower <= run.api_calls <= upper, (
+            f"api_calls={run.api_calls} outside [{lower}, {upper}]"
+        )
+
+    async def test_same_seed_same_result(
+        self,
+        runner_factory,
+        tmp_path: Path,
+    ) -> None:
+        cfg_a = _new_baseline_config(
+            tmp_path / "a", "successive_halving", seed=29
+        )
+        cfg_b = _new_baseline_config(
+            tmp_path / "b", "successive_halving", seed=29
+        )
+
+        runner_a = runner_factory(cfg_a)
+        runner_b = runner_factory(cfg_b)
+
+        result_a = await runner_a.run(resume=False)
+        result_b = await runner_b.run(resume=False)
+
+        run_a = result_a.runs[0]
+        run_b = result_b.runs[0]
+
+        assert run_a.champion_fitness == pytest.approx(run_b.champion_fitness)
+        assert run_a.per_question_scores == pytest.approx(
+            run_b.per_question_scores
+        )
+        assert run_a.api_calls == run_b.api_calls
+        assert run_a.total_evaluations == run_b.total_evaluations
+        assert run_a.fitness_curve == pytest.approx(run_b.fitness_curve)
+
+
+# ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
 

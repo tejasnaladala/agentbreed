@@ -217,11 +217,17 @@ class Population:
         if fitness_scores is not None:
             elite_score = _build_fitness_dict(elites, fitness_scores)
 
+        # Distinct parent IDs available? Needed to decide whether we can
+        # avoid selfing. If every elite shares the same ID (e.g. because
+        # tournament selection converged onto a single incumbent), the
+        # inner "avoid selfing" loop would run forever.
+        distinct_parent_ids = {g.genome_id for g in elites}
+        can_avoid_self = len(distinct_parent_ids) > 1
+
         while len(elites) + len(children) < target_size:
             parent_a = rng.choice(elites)
             parent_b = rng.choice(elites)
-            # Avoid selfing when possible
-            if len(elites) > 1:
+            if can_avoid_self:
                 while parent_b.genome_id == parent_a.genome_id:
                     parent_b = rng.choice(elites)
 
