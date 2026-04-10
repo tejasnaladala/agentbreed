@@ -50,7 +50,7 @@
         "fitness_function": "1 - Brier"
       }
     },
-    "timestamp": "2026-04-10T03:54:31.353183+00:00"
+    "timestamp": "2026-04-10T04:02:57.504085+00:00"
   },
   "comparisons": {
     "mutation_only": {
