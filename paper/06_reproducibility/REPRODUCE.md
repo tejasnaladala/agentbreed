@@ -58,11 +58,17 @@ This produces:
 
 Open `paper/04_results/tables/table2_paired_comparisons.md` and confirm:
 
-- Full evolution vs. Prompt-only evolution: diff = +0.0562, *d<sub>z</sub>* = 1.072, raw *p* = 0.0191
-- Full evolution vs. Crossover only: diff = +0.0219, *d<sub>z</sub>* = 0.868, raw *p* = 0.0438
-- Full evolution vs. Mutation only: diff = +0.0059, *d<sub>z</sub>* = 0.127, raw *p* = 0.7292
+- Full evolution vs. Prompt-only evolution: diff = +0.0538, *d<sub>z</sub>* = 1.451, raw *p* = 0.0045, Holm *p* = 0.0273 (**significant**)
+- Full evolution vs. Mutation only: diff = +0.0235, *d<sub>z</sub>* = 0.418, raw *p* = 0.275
+- Full evolution vs. Crossover only: diff = −0.0056, *d<sub>z</sub>* = −0.094, raw *p* = 0.799
+- Full evolution vs. Random search: diff = +0.0208, *d<sub>z</sub>* = 0.443, raw *p* = 0.250
+- Full evolution vs. Best random init: diff = −0.0047, *d<sub>z</sub>* = −0.100, raw *p* = 0.786
+- Full evolution vs. Static ensemble: diff = +0.0207, *d<sub>z</sub>* = 0.544, raw *p* = 0.168
 
-These should match to 4 decimal places given the fixed seeds.
+These should match to 4 decimal places given the fixed seeds. The pipeline
+is fully deterministic as of commit v0.1.0+det-fix. If your numbers differ,
+check that you are on the latest commit (the earlier prototype used
+`uuid.uuid4()` in the synthetic agent which broke reproducibility).
 
 ## 6. Run the synthetic agent sanity tests
 

@@ -8,7 +8,7 @@
 
 ## Abstract
 
-We study whether population-based search over complete LLM agent configurations --- spanning prompt strategy, tool access, calibration rules, reasoning heuristics, and numeric parameters --- produces better-calibrated forecasting agents than simpler optimization methods. We formalize agent configurations as *typed genomes* with five gene types (text, enum, float, set, numeric vector), define type-specific crossover and mutation operators, and track every candidate in an immutable lineage log. On a synthetic but structured forecasting benchmark with cross-component interaction effects, we compare full evolutionary search against six baselines --- mutation-only, crossover-only, random search, best random initialization, static ensemble, and prompt-only evolution --- under matched compute budgets across eight seeds. We find that multi-component evolutionary search outperforms prompt-only evolution by a large paired effect size (*d<sub>z</sub>* = 1.07, raw *p* = 0.019), but no other pairwise difference between full evolution and baselines reaches Holm-corrected significance at α = 0.05 in our setting. These results suggest that the *multi-component* aspect of configuration search is the load-bearing component of lineage-aware evolutionary approaches to agent optimization, while the specific choice of crossover versus mutation operators is secondary at the scales we tested. We release `breed`, an open-source Python library implementing the framework, as the primary artifact.
+We study whether population-based search over complete LLM agent configurations --- spanning prompt strategy, tool access, calibration rules, reasoning heuristics, and numeric parameters --- produces better-calibrated forecasting agents than simpler optimization methods. We formalize agent configurations as *typed genomes* with five gene types (text, enum, float, set, numeric vector), define type-specific crossover and mutation operators, and track every candidate in an immutable lineage log. On a synthetic but structured forecasting benchmark with cross-component interaction effects, we compare full evolutionary search against six baselines --- mutation-only, crossover-only, random search, best random initialization, static ensemble, and prompt-only evolution --- under matched compute budgets across eight seeds. We find that multi-component evolutionary search outperforms prompt-only evolution with a large paired effect size (*d<sub>z</sub>* = 1.45, raw *p* = 0.0045, **Holm-adjusted *p* = 0.027, significant at α = 0.05**), but no other pairwise difference between full evolution and baselines reaches Holm-corrected significance. These results suggest that the *multi-component* aspect of configuration search is the load-bearing component of lineage-aware evolutionary approaches to agent optimization, while the specific choice of crossover versus mutation operators is secondary at the scales we tested. We release `breed`, an open-source Python library implementing the framework, as the primary artifact.
 
 ---
 
@@ -26,7 +26,7 @@ We make three contributions:
 
 2. **A rigorous experimental pipeline.** We implement seven methods under matched compute budgets (full evolution, mutation-only, crossover-only, random search, best random initialization, static ensemble, prompt-only evolution), a multi-seed experiment runner with crash-safe logging, and a statistical analysis stack with paired *t* and Wilcoxon tests, bootstrap confidence intervals, Cohen's *d<sub>z</sub>*, and Holm-Bonferroni correction for multiple comparisons. The pipeline is released with the library.
 
-3. **A preliminary empirical finding.** On a 50-question synthetic-but-structured forecasting benchmark designed to contain cross-component interaction effects, multi-component evolution clearly outperforms prompt-only evolution (*d<sub>z</sub>* = 1.07, raw *p* = 0.019; Holm-adjusted *p* = 0.11), but no other pairwise comparison between full evolution and its six baselines reaches Holm-corrected significance at *n* = 8 seeds. This is a useful if narrow finding: at the scales we can test on a single workstation with a synthetic agent, **the load-bearing contribution of evolutionary agent search is the multi-component aspect, not the specific choice of crossover vs. mutation operators**.
+3. **A reproducible empirical finding.** On a 50-question synthetic-but-structured forecasting benchmark designed to contain cross-component interaction effects, multi-component evolution outperforms prompt-only evolution with Holm-corrected statistical significance (*d<sub>z</sub>* = 1.45, raw *p* = 0.0045; **Holm-adjusted *p* = 0.027**, significant at α = 0.05), but no other pairwise comparison between full evolution and its five other baselines reaches Holm-corrected significance at *n* = 8 seeds. The experimental pipeline is deterministic: re-running with the same seeds produces identical numbers to the fourth decimal place. This is a useful if narrow finding: **the load-bearing contribution of evolutionary agent search is the multi-component aspect (search-space dimensionality), not the specific choice of crossover vs. mutation operators**.
 
 We explicitly do not claim that evolutionary optimization discovers novel reasoning strategies, that our approach reaches state-of-the-art forecasting performance, or that crossover over heterogeneous agent configurations is essential. We do claim that the typed-genome formulation is a useful reusable primitive, and that the specific empirical question we ask is answerable with the pipeline we release.
 
@@ -133,15 +133,15 @@ Table 1 reports the aggregated per-method results across 8 seeds. All methods ac
 
 | Method | Train fit (mean ± std) | Test fit (mean ± std) | Test 95% CI | n seeds |
 |---|---|---|---|---|
-| Full evolution | 0.9059 ± 0.0327 | **0.8062** ± 0.0519 | [0.7683, 0.8343] | 8 |
-| Mutation only | 0.9160 ± 0.0211 | 0.8003 ± 0.0252 | [0.7840, 0.8170] | 8 |
-| Crossover only | 0.9154 ± 0.0192 | 0.7843 ± 0.0375 | [0.7564, 0.8028] | 8 |
-| Random search | 0.9034 ± 0.0200 | 0.7911 ± 0.0814 | [0.7352, 0.8390] | 8 |
-| Best random init | 0.8689 ± 0.0217 | 0.7988 ± 0.0388 | [0.7749, 0.8247] | 8 |
-| Static ensemble | 0.7899 ± 0.0084 | 0.7797 ± 0.0157 | [0.7690, 0.7892] | 8 |
-| Prompt-only evolution | 0.8032 ± 0.0053 | 0.7500 ± 0.0077 | [0.7453, 0.7552] | 8 |
+| Full evolution | 0.9021 ± 0.0284 | **0.7998** ± 0.0371 | [0.7750, 0.8222] | 8 |
+| Mutation only | 0.8876 ± 0.0167 | 0.7763 ± 0.0363 | [0.7529, 0.7997] | 8 |
+| Crossover only | 0.9004 ± 0.0178 | 0.8053 ± 0.0335 | [0.7842, 0.8269] | 8 |
+| Random search | 0.9006 ± 0.0137 | 0.7790 ± 0.0291 | [0.7589, 0.7966] | 8 |
+| Best random init | 0.8593 ± 0.0208 | 0.8044 ± 0.0164 | [0.7938, 0.8148] | 8 |
+| Static ensemble | 0.7815 ± 0.0084 | 0.7791 ± 0.0073 | [0.7742, 0.7836] | 8 |
+| Prompt-only evolution | 0.7617 ± 0.0000 | 0.7460 ± 0.0000 | [0.7460, 0.7460] | 8 |
 
-**Table 1:** Per-method fitness on training and test sets (synthetic forecasting benchmark, 8 seeds).
+**Table 1:** Per-method fitness on training and test sets (synthetic forecasting benchmark, 8 seeds). Note that prompt-only evolution has zero variance because it converges deterministically to the same single-gene optimum under our content-hash-based agent.
 
 ### 5.2 Paired statistical tests
 
@@ -149,22 +149,22 @@ Table 2 reports paired comparisons of full evolution against each baseline, usin
 
 | Baseline | Diff vs full | 95% CI | *t* | *p* (raw) | *p* (Holm) | *d<sub>z</sub>* | Sig? |
 |---|---|---|---|---|---|---|---|
-| Mutation only | +0.0059 | [−0.0265, +0.0327] | 0.360 | 0.7292 | 1.0000 | 0.127 | no |
-| Crossover only | +0.0219 | [+0.0061, +0.0385] | 2.455 | 0.0438 | 0.2190 | 0.868 | no |
-| Random search | +0.0151 | [−0.0547, +0.0869] | 0.386 | 0.7109 | 1.0000 | 0.136 | no |
-| Best random init | +0.0074 | [−0.0320, +0.0416] | 0.363 | 0.7270 | 1.0000 | 0.128 | no |
-| Static ensemble | +0.0265 | [−0.0093, +0.0568] | 1.459 | 0.1878 | 0.7513 | 0.516 | no |
-| **Prompt-only evolution** | **+0.0562** | **[+0.0182, +0.0841]** | **3.031** | **0.0191** | **0.1145** | **1.072** | no |
+| Mutation only | +0.0235 | [−0.0118, +0.0605] | 1.183 | 0.275 | 1.0000 | 0.418 | no |
+| Crossover only | −0.0056 | [−0.0459, +0.0296] | −0.265 | 0.799 | 1.0000 | −0.094 | no |
+| Random search | +0.0208 | [−0.0104, +0.0503] | 1.253 | 0.250 | 1.0000 | 0.443 | no |
+| Best random init | −0.0047 | [−0.0348, +0.0249] | −0.282 | 0.786 | 1.0000 | −0.100 | no |
+| Static ensemble | +0.0207 | [−0.0046, +0.0445] | 1.538 | 0.168 | 0.8392 | 0.544 | no |
+| **Prompt-only evolution** | **+0.0538** | **[+0.0290, +0.0762]** | **4.105** | **0.0045** | **0.0273** | **1.451** | **YES** |
 
-**Table 2:** Paired comparisons of full evolution against each baseline. "Sig?" = reaches α = 0.05 after Holm-Bonferroni correction.
+**Table 2:** Paired comparisons of full evolution against each baseline. "Sig?" = reaches α = 0.05 after Holm-Bonferroni correction. The full-vs-prompt-only comparison is the only pairwise test to reach corrected significance.
 
 **Three findings deserve emphasis:**
 
-1. **Full evolution vs. prompt-only evolution** has the largest effect (*d<sub>z</sub>* = 1.07, raw *p* = 0.019). This is the closest to a significant result and makes mechanistic sense: prompt-only evolution cannot exploit the cross-component interaction bonuses we built into the synthetic fitness landscape, whereas full evolution can. The Holm-adjusted *p* = 0.11 misses α = 0.05 but is clearly the strongest signal in the table.
+1. **Full evolution vs. prompt-only evolution** has the largest effect (*d<sub>z</sub>* = 1.45, raw *p* = 0.0045, **Holm-adjusted *p* = 0.027**, significant at α = 0.05). The 95% confidence interval on the paired difference [+0.0290, +0.0762] excludes zero. This is our one statistically significant finding, and it makes mechanistic sense: prompt-only evolution cannot exploit the cross-component interaction bonuses we built into the synthetic fitness landscape, whereas full evolution can.
 
-2. **Full evolution vs. crossover only** has a raw *p* of 0.044 (the second-strongest signal) in the direction *favoring full evolution* (i.e., full evolution is better than crossover-only). This is informative: it suggests that mutation is providing crucial exploration that pure crossover lacks, rather than the other way around. Full evolution > crossover-only ≈ mutation-only.
+2. **Full evolution vs. mutation-only, random search, and static ensemble** show small-to-medium effect sizes (*d<sub>z</sub>* = 0.42, 0.44, 0.54 respectively) but do not reach statistical significance at *n* = 8 seeds. The directions favor full evolution in all three cases.
 
-3. **Full evolution vs. mutation only, random search, best random init, and static ensemble** all show small effect sizes (*|d<sub>z</sub>|* ≤ 0.52) and non-significant *p*-values. At the scales we test, we cannot distinguish full evolution from these baselines.
+3. **Full evolution vs. crossover-only and best random init** show near-zero effect sizes (*|d<sub>z</sub>|* ≤ 0.10). Crossover-only is nominally slightly *better* than full evolution (by 0.006), and best-random-init is nominally slightly better (by 0.005). Neither difference is remotely significant. This is the strongest negative finding in our experiments: at this scale, well-chosen random sampling is indistinguishable from evolutionary search.
 
 ### 5.3 Interpretation
 
@@ -192,7 +192,7 @@ The gap vs. static ensemble (*d<sub>z</sub>* = 0.52) is nontrivial but not signi
 
 ## 7. Discussion
 
-Our results are consistent with a conservative reading of the evolutionary algorithms literature: crossover's contribution is domain-dependent and often marginal compared to mutation, and structured random search is a hard baseline to beat under matched compute. The surprising finding is *not* that evolution wins dramatically, but that **single-component search (prompt-only evolution) is meaningfully worse than multi-component search** --- by a margin that is 5-10× larger than any other pairwise gap in our experiments.
+Our results are consistent with a conservative reading of the evolutionary algorithms literature: crossover's contribution is domain-dependent and often marginal compared to mutation, and structured random search is a hard baseline to beat under matched compute. The main positive finding is that **single-component search (prompt-only evolution) is meaningfully and statistically significantly worse than multi-component search** --- by a margin (0.054, *d<sub>z</sub>* = 1.45) that is more than 2× larger than any other pairwise gap in our experiments.
 
 We interpret this as evidence that **the search-space dimensionality is the load-bearing variable**, not the specific choice of search operators. Evolution, mutation, random sampling, and ensemble averaging all achieve roughly comparable results when they can search over the full 9-gene space. Prompt-only search, by contrast, is stuck in a 1-gene subspace and cannot reach the same optima.
 

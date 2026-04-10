@@ -151,6 +151,28 @@ def _stable_uniform(*parts: str) -> float:
     return int(h[:16], 16) / float(0xFFFF_FFFF_FFFF_FFFF)
 
 
+def _genome_content_hash(genome_dict: dict[str, Any]) -> str:
+    """Compute a stable hash of a genome's *content* (gene values), ignoring IDs.
+
+    Two genomes with identical gene values produce the same hash. This is
+    critical for determinism in the synthetic agent: if we hashed
+    ``genome_id`` (a random UUID) instead, two structurally-identical
+    genomes would produce different predictions, making experiments
+    non-reproducible.
+    """
+    genes = genome_dict.get("genes", {}) or {}
+    parts: list[str] = []
+    for name in sorted(genes.keys()):
+        gene = genes[name]
+        if isinstance(gene, dict):
+            value = gene.get("value")
+        else:
+            value = gene
+        parts.append(f"{name}={value!r}")
+    payload = "|".join(parts)
+    return hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+
 def _genome_skill(genome_dict: dict[str, Any], effects: GeneEffects = DEFAULT_EFFECTS) -> float:
     """Compute the "skill" of a genome in [0, 1].
 
@@ -257,12 +279,14 @@ def make_synthetic_agent(
 
     async def agent(genome_dict: dict[str, Any], task: str) -> str:
         skill = _genome_skill(genome_dict, effects)  # in [0, 1]
-        gid = str(genome_dict.get("genome_id", ""))
+        # Use content hash, not genome_id, so identical gene sets produce
+        # identical predictions regardless of UUID -- ensures reproducibility.
+        content_hash = _genome_content_hash(genome_dict)
         truth = truth_lookup.get(task)
 
-        # Deterministic per-(genome, task) randomness
-        u_correct = _stable_uniform(gid, task, "correctness")
-        u_noise = (_stable_uniform(gid, task, "noise") - 0.5) * 2.0 * noise_level
+        # Deterministic per-(content, task) randomness
+        u_correct = _stable_uniform(content_hash, task, "correctness")
+        u_noise = (_stable_uniform(content_hash, task, "noise") - 0.5) * 2.0 * noise_level
 
         # Skill probability of "knowing" the right answer
         # We use a softer scaling: even a 0-skill genome has 50% chance of
