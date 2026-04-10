@@ -80,8 +80,11 @@ class TestForecastingQuestion:
 class TestQuestionDataset:
     def test_builtin_loads(self) -> None:
         ds = load_builtin_questions()
-        assert len(ds) > 0
+        # The expanded built-in set has exactly 120 questions.
+        assert len(ds) == 120
         assert all(isinstance(q, ForecastingQuestion) for q in ds)
+        # Metadata n_questions must stay in sync with the actual pool.
+        assert ds.metadata.n_questions == 120
 
     def test_builtin_outcomes_binary(self) -> None:
         ds = load_builtin_questions()
@@ -91,8 +94,23 @@ class TestQuestionDataset:
     def test_builtin_balanced(self) -> None:
         ds = load_builtin_questions()
         base_rate = ds.base_rate()
-        # Should be roughly balanced (between 30% and 70% YES)
-        assert 0.3 < base_rate < 0.7, f"base rate {base_rate} too imbalanced"
+        # Expansion targets 55-65% YES with a small tolerance band.
+        assert 0.5 <= base_rate <= 0.7, f"base rate {base_rate} outside target band"
+
+    def test_builtin_categories_balanced(self) -> None:
+        ds = load_builtin_questions()
+        counts = ds.category_counts()
+        # The expansion mandates these per-category counts.
+        expected = {
+            "tech": 25,
+            "science": 20,
+            "politics": 15,
+            "economics": 25,
+            "sports": 15,
+            "culture": 10,
+            "finance": 10,
+        }
+        assert counts == expected
 
     def test_categories(self) -> None:
         ds = load_builtin_questions()

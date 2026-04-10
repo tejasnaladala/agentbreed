@@ -77,6 +77,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 import random
 import time
 from dataclasses import asdict, dataclass, field
@@ -84,12 +85,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
+import numpy as np
+
 from breed.adapters.callable_adapter import CallableAdapter
 from breed.arenas.base import Task
 from breed.arenas.custom import CustomArena
 from breed.engine import BreedingConfig, BreedingEngine
 from breed.events import CallbackObserver, EventBus, GenerationComplete
-from breed.genome import Genome
+from breed.genome import Gene, GeneType, Genome
 from breed.population import Population
 
 
@@ -107,6 +110,8 @@ KNOWN_METHODS: tuple[str, ...] = (
     "static_best",
     "static_ensemble",
     "prompt_only_evolution",
+    "bayesian_opt",
+    "successive_halving",
 )
 
 
@@ -491,6 +496,10 @@ class ExperimentRunner:
             return await self._run_static_ensemble(seed)
         if method == "prompt_only_evolution":
             return await self._run_prompt_only(seed)
+        if method == "bayesian_opt":
+            return await self._run_bayesian_opt(seed)
+        if method == "successive_halving":
+            return await self._run_successive_halving(seed)
         raise ValueError(
             f"Unknown method: {method!r}. Valid methods: {list(KNOWN_METHODS)}"
         )
@@ -1038,6 +1047,614 @@ class ExperimentRunner:
                 "member_fitness": member_fitness,
             },
         )
+
+    # -- Bayesian optimisation (TPE) ----------------------------------------
+
+    async def _run_bayesian_opt(self, seed: int) -> RunResult:
+        """Bayesian optimisation via Tree-structured Parzen Estimator (TPE).
+
+        Implementation notes
+        --------------------
+        * Same compute budget as other methods: ``population_size *
+          generations`` LLM evaluations on the train set.
+        * Warmup: the first ``_TPE_WARMUP`` iterations sample uniformly at
+          random. After warmup, each iteration draws ``_TPE_N_CANDIDATES``
+          random candidates and picks the one with the highest TPE-based
+          Expected Improvement score.
+        * Encoding: ENUM genes become categorical distributions, FLOAT genes
+          become continuous (Gaussian KDE), SET genes become multi-hot
+          binary vectors. TEXT / NUMERIC_VECTOR genes are encoded as
+          categoricals over the index of the value in the raw template
+          (fallback: treated as a single bucket).
+
+        The acquisition score is::
+
+            acq(x) = log(l(x) + eps) - log(g(x) + eps)
+
+        where ``l`` is the KDE fit on the "good" history (top fraction by
+        fitness) and ``g`` is the KDE fit on the "bad" history (the rest).
+        """
+        self._reset_counters()
+        start = time.perf_counter()
+        rng = _make_seed_chain(seed)
+        np_rng = np.random.default_rng(seed)
+
+        adapter = self._build_adapter()
+        train_arena = self._build_arena(self.train_tasks)
+
+        budget = self.config.compute_budget
+        history_genomes: list[Genome] = []
+        history_scores: list[float] = []
+        history_encoded: list[dict[str, Any]] = []
+
+        # Pre-compute encoder spec from the gene template so that the
+        # encoding is consistent across candidates.
+        encoder = _TPEEncoder(self.gene_template)
+
+        for iteration in range(budget):
+            if iteration < _TPE_WARMUP or len(history_scores) < 2:
+                # Warmup: pure random sample.
+                sub_seed = rng.randint(0, 2**31 - 1)
+                pop = Population.spawn(
+                    1, seed=sub_seed, gene_template=self.gene_template
+                )
+                candidate = pop.members[0]
+            else:
+                # Draw N candidates and pick the one with the best
+                # acquisition score under the current TPE split.
+                candidates: list[Genome] = []
+                candidate_encoded: list[dict[str, Any]] = []
+                for _ in range(_TPE_N_CANDIDATES):
+                    sub_seed = rng.randint(0, 2**31 - 1)
+                    pop = Population.spawn(
+                        1, seed=sub_seed, gene_template=self.gene_template
+                    )
+                    g = pop.members[0]
+                    candidates.append(g)
+                    candidate_encoded.append(encoder.encode(g))
+
+                good_mask, bad_mask = _split_history_mask(
+                    history_scores, _TPE_SPLIT_FRACTION
+                )
+                if sum(good_mask) < 1 or sum(bad_mask) < 1:
+                    # Not enough data to split -- fall back to the first
+                    # candidate (still better than re-evaluating already
+                    # seen points).
+                    best_idx = 0
+                else:
+                    good_hist = [
+                        h for h, m in zip(history_encoded, good_mask) if m
+                    ]
+                    bad_hist = [
+                        h for h, m in zip(history_encoded, bad_mask) if m
+                    ]
+                    scores = [
+                        encoder.tpe_acquisition(
+                            enc,
+                            good_hist,
+                            bad_hist,
+                            rng=np_rng,
+                        )
+                        for enc in candidate_encoded
+                    ]
+                    best_idx = _argmax(scores)
+                candidate = candidates[best_idx]
+
+            eval_result = await train_arena.evaluate(
+                candidate, adapter, self.train_tasks
+            )
+            self._eval_count += 1
+            score = float(eval_result.fitness_score)
+
+            history_genomes.append(candidate)
+            history_scores.append(score)
+            history_encoded.append(encoder.encode(candidate))
+
+        best_idx = _argmax(history_scores)
+        champion = history_genomes[best_idx]
+        champion_fitness = history_scores[best_idx]
+
+        fitness_curve = _running_max(history_scores)
+        per_q_scores = await self._evaluate_on_test(champion)
+
+        wall_clock = time.perf_counter() - start
+
+        return RunResult(
+            method="bayesian_opt",
+            seed=seed,
+            champion_genome_id=champion.genome_id,
+            champion_fitness=champion_fitness,
+            per_question_scores=per_q_scores,
+            fitness_curve=fitness_curve,
+            wall_clock_seconds=wall_clock,
+            total_evaluations=self._eval_count,
+            api_calls=self._call_count,
+            metadata={
+                "compute_budget": budget,
+                "tpe_warmup": _TPE_WARMUP,
+                "tpe_n_candidates": _TPE_N_CANDIDATES,
+                "tpe_split_fraction": _TPE_SPLIT_FRACTION,
+                "champion_genes": {
+                    name: gene.value for name, gene in champion.genes.items()
+                },
+            },
+        )
+
+    # -- Successive halving (Hyperband-style) -------------------------------
+
+    async def _run_successive_halving(self, seed: int) -> RunResult:
+        """Successive halving multi-fidelity search.
+
+        Implementation
+        --------------
+        Starts with a large pool of random genomes, evaluates them at a
+        cheap fidelity (a small subset of training tasks), keeps the top
+        ``1/eta`` by score, then multiplies the fidelity by ``eta`` and
+        repeats until the fidelity reaches the full training set.
+
+        Budget is measured in *task evaluations* (each genome-on-task pair
+        is one LLM call on the search set). The total budget equals
+        ``population_size * generations * len(train_tasks)`` to stay in
+        lock-step with the other baselines which perform
+        ``population_size * generations`` full-train evaluations (each of
+        which costs ``len(train_tasks)`` LLM calls). ``N_0`` is chosen so
+        that every rung spends roughly an equal budget, matching the
+        classical Hyperband analysis.
+        """
+        self._reset_counters()
+        start = time.perf_counter()
+        rng = _make_seed_chain(seed)
+
+        adapter = self._build_adapter()
+        full_train_arena = self._build_arena(self.train_tasks)
+
+        n_train = len(self.train_tasks)
+        if n_train == 0:
+            raise RuntimeError(
+                "successive_halving: train_tasks must be non-empty"
+            )
+
+        eta = _SH_ETA
+        fidelity_max = n_train
+        fidelity_min = min(_SH_FIDELITY_MIN, n_train)
+
+        # Total task-level budget (LLM calls on search set).
+        total_task_budget = (
+            self.config.population_size
+            * self.config.generations
+            * n_train
+        )
+
+        # Build the fidelity schedule.
+        schedule: list[int] = []
+        f = fidelity_min
+        while True:
+            schedule.append(f)
+            if f >= fidelity_max:
+                break
+            next_f = int(round(f * eta))
+            if next_f <= f:
+                next_f = f + 1
+            if next_f >= fidelity_max:
+                schedule.append(fidelity_max)
+                break
+            f = next_f
+        # De-duplicate consecutive equal rungs (in case fidelity_min ==
+        # fidelity_max).
+        dedup_schedule: list[int] = []
+        for fid in schedule:
+            if not dedup_schedule or dedup_schedule[-1] != fid:
+                dedup_schedule.append(fid)
+        schedule = dedup_schedule
+        n_rungs = len(schedule)
+
+        # Choose N_0 so that each rung consumes approximately an equal
+        # share of the budget. With halving ratio eta, rung i holds
+        # ``N_0 / eta^i`` survivors evaluated at fidelity ``schedule[i]``.
+        rung_cost_per_n0 = sum(
+            schedule[i] / (eta ** i) for i in range(n_rungs)
+        )
+        if rung_cost_per_n0 <= 0:
+            rung_cost_per_n0 = float(fidelity_max)
+        n0 = max(2, int(round(total_task_budget / rung_cost_per_n0)))
+
+        # Sample the initial pool.
+        pop = Population.spawn(
+            n0,
+            seed=rng.randint(0, 2**31 - 1),
+            gene_template=self.gene_template,
+        )
+        survivors: list[Genome] = list(pop.members)
+
+        fitness_curve: list[float] = []
+        last_fitness_at_rung: dict[str, float] = {}
+        rung_details: list[dict[str, Any]] = []
+        task_budget_left = total_task_budget
+
+        for rung_idx, fidelity in enumerate(schedule):
+            if not survivors:
+                break
+
+            # Random subset of training tasks for this fidelity.
+            fidelity = min(fidelity, n_train)
+            task_indices = rng.sample(range(n_train), fidelity)
+            rung_tasks = [self.train_tasks[i] for i in task_indices]
+            rung_arena = self._build_arena(rung_tasks)
+
+            scored: list[tuple[Genome, float]] = []
+            for genome in survivors:
+                if task_budget_left < fidelity:
+                    # Out of budget -- stop early, keep what we have.
+                    break
+                eval_result = await rung_arena.evaluate(
+                    genome, adapter, rung_tasks
+                )
+                self._eval_count += 1
+                score = float(eval_result.fitness_score)
+                scored.append((genome, score))
+                last_fitness_at_rung[genome.genome_id] = score
+                task_budget_left -= fidelity
+
+            if not scored:
+                break
+
+            scored.sort(key=lambda item: item[1], reverse=True)
+            best_score = scored[0][1]
+            fitness_curve.append(best_score)
+
+            rung_details.append(
+                {
+                    "rung": rung_idx,
+                    "fidelity": fidelity,
+                    "n_evaluated": len(scored),
+                    "best_score": best_score,
+                }
+            )
+
+            if rung_idx == n_rungs - 1 or task_budget_left <= 0:
+                survivors = [g for g, _ in scored]
+                break
+
+            # Keep the top 1/eta.
+            keep = max(1, len(scored) // eta)
+            survivors = [g for g, _ in scored[:keep]]
+
+        if not survivors:
+            raise RuntimeError(
+                "successive_halving produced no survivors"
+            )
+
+        # Re-evaluate the finalists at full fidelity on the *entire* train
+        # set to pick the champion, but only if budget allows. Otherwise,
+        # pick the highest-scoring survivor from the last rung.
+        champion: Genome | None = None
+        champion_fitness = float("-inf")
+
+        can_afford_final = task_budget_left >= len(survivors) * n_train
+        if can_afford_final:
+            for genome in survivors:
+                eval_result = await full_train_arena.evaluate(
+                    genome, adapter, self.train_tasks
+                )
+                self._eval_count += 1
+                score = float(eval_result.fitness_score)
+                task_budget_left -= n_train
+                if score > champion_fitness:
+                    champion_fitness = score
+                    champion = genome
+            if champion is not None:
+                fitness_curve.append(champion_fitness)
+        else:
+            # Fallback: pick the survivor with the best last-rung score.
+            scored_finalists = [
+                (g, last_fitness_at_rung.get(g.genome_id, float("-inf")))
+                for g in survivors
+            ]
+            scored_finalists.sort(key=lambda item: item[1], reverse=True)
+            champion, champion_fitness = scored_finalists[0]
+
+        if champion is None:
+            # Shouldn't happen, but guard anyway.
+            champion = survivors[0]
+            champion_fitness = last_fitness_at_rung.get(
+                champion.genome_id, 0.0
+            )
+
+        per_q_scores = await self._evaluate_on_test(champion)
+
+        wall_clock = time.perf_counter() - start
+
+        return RunResult(
+            method="successive_halving",
+            seed=seed,
+            champion_genome_id=champion.genome_id,
+            champion_fitness=float(champion_fitness),
+            per_question_scores=per_q_scores,
+            fitness_curve=fitness_curve,
+            wall_clock_seconds=wall_clock,
+            total_evaluations=self._eval_count,
+            api_calls=self._call_count,
+            metadata={
+                "compute_budget": self.config.compute_budget,
+                "task_budget": total_task_budget,
+                "task_budget_remaining": max(0, task_budget_left),
+                "eta": eta,
+                "fidelity_min": fidelity_min,
+                "fidelity_max": fidelity_max,
+                "fidelity_schedule": list(schedule),
+                "n0": n0,
+                "rungs": rung_details,
+                "champion_genes": {
+                    name: gene.value for name, gene in champion.genes.items()
+                },
+            },
+        )
+
+
+# ---------------------------------------------------------------------------
+# TPE helpers (module-level so they can be unit-tested independently)
+# ---------------------------------------------------------------------------
+
+_TPE_WARMUP: int = 5
+_TPE_N_CANDIDATES: int = 5
+_TPE_SPLIT_FRACTION: float = 0.5  # median split of history
+_TPE_EPS: float = 1e-12
+_TPE_BW_FLOOR: float = 1e-2
+
+_SH_ETA: int = 3
+_SH_FIDELITY_MIN: int = 5
+
+
+def _split_history_mask(
+    scores: list[float], fraction: float
+) -> tuple[list[bool], list[bool]]:
+    """Return (good_mask, bad_mask) splitting *scores* at the top *fraction*.
+
+    Higher is better. Ties break toward "bad".
+    """
+    if not scores:
+        return [], []
+    n = len(scores)
+    k = max(1, int(round(n * fraction)))
+    k = min(k, n - 1) if n > 1 else 1
+    # sort indices by score descending
+    ranked = sorted(range(n), key=lambda i: scores[i], reverse=True)
+    good_set = set(ranked[:k])
+    good_mask = [i in good_set for i in range(n)]
+    bad_mask = [not m for m in good_mask]
+    return good_mask, bad_mask
+
+
+class _TPEEncoder:
+    """Encode/score genomes for TPE acquisition.
+
+    The encoder builds a per-gene schema once (from the gene template)
+    and then:
+
+    * ``encode(genome)`` returns a dict mapping gene name to a numeric
+      representation suitable for KDE / categorical scoring.
+    * ``tpe_acquisition(encoded, good_hist, bad_hist, rng)`` returns a
+      scalar Expected-Improvement-style score.
+
+    Gene handling
+    -------------
+    * FLOAT    -> normalised value in [0, 1]
+    * ENUM     -> category index (int)
+    * SET      -> multi-hot vector (numpy array of 0/1)
+    * TEXT     -> category index over the provided templates (if any)
+    * NUMERIC_VECTOR -> category index over the provided templates
+    """
+
+    def __init__(self, gene_template: dict[str, dict[str, Any]]) -> None:
+        self._schema: dict[str, dict[str, Any]] = {}
+        for gene_name, spec in gene_template.items():
+            raw_type = spec.get("type")
+            if isinstance(raw_type, GeneType):
+                gtype = raw_type
+            else:
+                try:
+                    gtype = GeneType(str(raw_type).lower())
+                except ValueError:
+                    continue
+
+            if gtype == GeneType.FLOAT:
+                lo, hi = spec["range"]
+                self._schema[gene_name] = {
+                    "kind": "float",
+                    "lo": float(lo),
+                    "hi": float(hi),
+                }
+            elif gtype == GeneType.ENUM:
+                self._schema[gene_name] = {
+                    "kind": "enum",
+                    "options": list(spec["options"]),
+                }
+            elif gtype == GeneType.SET:
+                self._schema[gene_name] = {
+                    "kind": "set",
+                    "available": list(spec["available"]),
+                }
+            elif gtype == GeneType.TEXT:
+                templates = list(spec.get("templates", []))
+                self._schema[gene_name] = {
+                    "kind": "text",
+                    "templates": templates,
+                }
+            elif gtype == GeneType.NUMERIC_VECTOR:
+                templates = list(spec.get("templates", []))
+                self._schema[gene_name] = {
+                    "kind": "numeric_vector",
+                    "templates": templates,
+                }
+
+    def encode(self, genome: Genome) -> dict[str, Any]:
+        """Encode a genome into per-gene numeric buckets."""
+        out: dict[str, Any] = {}
+        for gene_name, schema in self._schema.items():
+            gene = genome.genes.get(gene_name)
+            if gene is None:
+                out[gene_name] = None
+                continue
+
+            kind = schema["kind"]
+            if kind == "float":
+                lo = schema["lo"]
+                hi = schema["hi"]
+                span = hi - lo if hi > lo else 1.0
+                out[gene_name] = float((float(gene.value) - lo) / span)
+            elif kind == "enum":
+                options = schema["options"]
+                try:
+                    out[gene_name] = options.index(gene.value)
+                except ValueError:
+                    out[gene_name] = 0
+            elif kind == "set":
+                available = schema["available"]
+                value_set = set(gene.value or [])
+                out[gene_name] = np.array(
+                    [1.0 if item in value_set else 0.0 for item in available],
+                    dtype=np.float64,
+                )
+            elif kind == "text":
+                templates = schema["templates"]
+                try:
+                    out[gene_name] = templates.index(gene.value)
+                except ValueError:
+                    out[gene_name] = 0
+            elif kind == "numeric_vector":
+                templates = schema["templates"]
+                idx = 0
+                for i, tmpl in enumerate(templates):
+                    if list(tmpl) == list(gene.value):
+                        idx = i
+                        break
+                out[gene_name] = idx
+        return out
+
+    def tpe_acquisition(
+        self,
+        encoded: dict[str, Any],
+        good_hist: list[dict[str, Any]],
+        bad_hist: list[dict[str, Any]],
+        rng: np.random.Generator,
+    ) -> float:
+        """Log-ratio acquisition score ``log(l(x)+eps) - log(g(x)+eps)``.
+
+        The joint density factorises independently across genes.
+        """
+        if not good_hist or not bad_hist:
+            return float(rng.random())
+
+        log_l = 0.0
+        log_g = 0.0
+        for gene_name, schema in self._schema.items():
+            val = encoded.get(gene_name)
+            if val is None:
+                continue
+
+            kind = schema["kind"]
+            if kind == "float":
+                good_vals = [
+                    h[gene_name]
+                    for h in good_hist
+                    if h.get(gene_name) is not None
+                ]
+                bad_vals = [
+                    h[gene_name]
+                    for h in bad_hist
+                    if h.get(gene_name) is not None
+                ]
+                log_l += math.log(
+                    _gaussian_kde_pdf(val, good_vals) + _TPE_EPS
+                )
+                log_g += math.log(
+                    _gaussian_kde_pdf(val, bad_vals) + _TPE_EPS
+                )
+            elif kind in ("enum", "text", "numeric_vector"):
+                if kind == "enum":
+                    n_cats = max(1, len(schema["options"]))
+                elif kind == "text":
+                    n_cats = max(1, len(schema["templates"]))
+                else:
+                    n_cats = max(1, len(schema["templates"]))
+                good_cats = [
+                    h[gene_name]
+                    for h in good_hist
+                    if h.get(gene_name) is not None
+                ]
+                bad_cats = [
+                    h[gene_name]
+                    for h in bad_hist
+                    if h.get(gene_name) is not None
+                ]
+                log_l += math.log(
+                    _categorical_pmf(val, good_cats, n_cats) + _TPE_EPS
+                )
+                log_g += math.log(
+                    _categorical_pmf(val, bad_cats, n_cats) + _TPE_EPS
+                )
+            elif kind == "set":
+                # Independent-Bernoulli per slot.
+                good_vecs = [
+                    h[gene_name]
+                    for h in good_hist
+                    if h.get(gene_name) is not None
+                ]
+                bad_vecs = [
+                    h[gene_name]
+                    for h in bad_hist
+                    if h.get(gene_name) is not None
+                ]
+                if good_vecs and bad_vecs:
+                    good_arr = np.stack(good_vecs)
+                    bad_arr = np.stack(bad_vecs)
+                    good_p = (good_arr.sum(axis=0) + 1.0) / (
+                        len(good_vecs) + 2.0
+                    )
+                    bad_p = (bad_arr.sum(axis=0) + 1.0) / (
+                        len(bad_vecs) + 2.0
+                    )
+                    x = np.asarray(val, dtype=np.float64)
+                    good_like = x * good_p + (1.0 - x) * (1.0 - good_p)
+                    bad_like = x * bad_p + (1.0 - x) * (1.0 - bad_p)
+                    log_l += float(
+                        np.sum(np.log(good_like + _TPE_EPS))
+                    )
+                    log_g += float(
+                        np.sum(np.log(bad_like + _TPE_EPS))
+                    )
+
+        return log_l - log_g
+
+
+def _gaussian_kde_pdf(x: float, samples: list[float]) -> float:
+    """Scalar Gaussian KDE density at *x*.
+
+    Uses Silverman's rule for bandwidth with a small floor so degenerate
+    histories (all-identical values) don't produce zero density.
+    """
+    if not samples:
+        return 0.0
+    n = len(samples)
+    arr = np.asarray(samples, dtype=np.float64)
+    std = float(arr.std(ddof=0))
+    bw = max(_TPE_BW_FLOOR, 1.06 * std * (n ** (-1 / 5)))
+    z = (x - arr) / bw
+    kernels = np.exp(-0.5 * z * z) / math.sqrt(2.0 * math.pi)
+    return float(kernels.mean() / bw)
+
+
+def _categorical_pmf(
+    value: int, samples: list[int], n_categories: int
+) -> float:
+    """Categorical PMF with Laplace smoothing."""
+    if n_categories <= 0:
+        return 0.0
+    counts = 0
+    for s in samples:
+        if s == value:
+            counts += 1
+    return (counts + 1.0) / (len(samples) + float(n_categories))
 
 
 # ---------------------------------------------------------------------------
