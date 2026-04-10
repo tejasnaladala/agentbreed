@@ -1,0 +1,19 @@
+{
+  "transfer_matrix": {
+    "forecasting": {
+      "forecasting": 0.7576992629508195,
+      "coding": 0.19500000000000006,
+      "knowledge": 0.425
+    },
+    "coding": {
+      "forecasting": 0.7864598968852459,
+      "coding": 0.52,
+      "knowledge": 0.4
+    },
+    "knowledge": {
+      "forecasting": 0.8254908944262292,
+      "coding": 0.26499999999999996,
+      "knowledge": 0.5
+    }
+  }
+}

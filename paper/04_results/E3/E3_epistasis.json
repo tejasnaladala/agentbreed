@@ -13,258 +13,258 @@
         "risk_threshold"
       ],
       "first_order": {
-        "prompt_template": 1.7748009488666432,
-        "decision_heuristic": 0.8471671302067973,
-        "calibration_rule": -5.209735160894568,
-        "decomposition_style": -0.03851751346813903,
-        "memory_structure": 3.170837405059402,
-        "answer_format": -1.208206159630903,
-        "tool_policy": -3.717363721668317,
-        "temperature": -0.7664292988423524,
-        "risk_threshold": -4.293569785913088
+        "prompt_template": 0.8601269284781938,
+        "decision_heuristic": -0.7717762888522436,
+        "calibration_rule": -1.6456529007207157,
+        "decomposition_style": -0.8594626736673968,
+        "memory_structure": -0.5500808517612256,
+        "answer_format": -1.1999257336512088,
+        "tool_policy": -0.9470006884501796,
+        "temperature": 1.004864029880264,
+        "risk_threshold": -2.1458907162228
       },
       "total_order": {
-        "prompt_template": 0.709389051392202,
-        "decision_heuristic": 0.7258362173716615,
-        "calibration_rule": 0.8356567119378511,
-        "decomposition_style": 0.9925872436589259,
-        "memory_structure": 0.7796175056137975,
-        "answer_format": 0.7313419740964108,
-        "tool_policy": 2.7079765887792937,
-        "temperature": 0.9273527336769399,
-        "risk_threshold": 1.0870474678289133
+        "prompt_template": 0.6916280987611451,
+        "decision_heuristic": 0.7336164888190992,
+        "calibration_rule": 0.6430335788444633,
+        "decomposition_style": 0.7510355848394227,
+        "memory_structure": 0.6693933195124795,
+        "answer_format": 0.6089325391512377,
+        "tool_policy": 2.7663059927624016,
+        "temperature": 0.8549440443228907,
+        "risk_threshold": 0.9246065623164504
       },
       "pairwise": {
-        "decision_heuristic|prompt_template": 0.02471195904280446,
-        "calibration_rule|prompt_template": 0.02785287673141606,
-        "decomposition_style|prompt_template": 0.03141216839799695,
-        "memory_structure|prompt_template": 0.015284597110515245,
-        "answer_format|prompt_template": 0.013545400995591542,
-        "prompt_template|tool_policy": 0.15784343744058293,
-        "prompt_template|temperature": 0.05137342562932017,
-        "prompt_template|risk_threshold": 0.05967207765614764,
-        "calibration_rule|decision_heuristic": 0.015329795834075607,
-        "decision_heuristic|decomposition_style": 0.018927370289511074,
-        "decision_heuristic|memory_structure": 0.021768458970195338,
-        "answer_format|decision_heuristic": 0.013065467046626027,
-        "decision_heuristic|tool_policy": 0.18320858247615066,
-        "decision_heuristic|temperature": 0.05244156641826272,
-        "decision_heuristic|risk_threshold": 0.05083064729909617,
-        "calibration_rule|decomposition_style": 0.014937630088388457,
-        "calibration_rule|memory_structure": 0.023538666756317043,
-        "answer_format|calibration_rule": 0.018787544216149706,
-        "calibration_rule|tool_policy": 0.1925515365401764,
-        "calibration_rule|temperature": 0.04554461175333111,
-        "calibration_rule|risk_threshold": 0.03655767722186528,
-        "decomposition_style|memory_structure": 0.02858468549764301,
-        "answer_format|decomposition_style": 0.014427496402905346,
-        "decomposition_style|tool_policy": 0.16143644250318143,
-        "decomposition_style|temperature": 0.05514551350098621,
-        "decomposition_style|risk_threshold": 0.0664705648864106,
-        "answer_format|memory_structure": 0.01045333169518131,
-        "memory_structure|tool_policy": 0.20537704792612108,
-        "memory_structure|temperature": 0.07592028148122887,
-        "memory_structure|risk_threshold": 0.05286151974114129,
-        "answer_format|tool_policy": 0.14489563545927225,
-        "answer_format|temperature": 0.018552547883452716,
-        "answer_format|risk_threshold": 0.0260342574117328,
-        "temperature|tool_policy": 0.24593674072520702,
-        "risk_threshold|tool_policy": 0.288359256400249,
-        "risk_threshold|temperature": 0.08081871598245442
+        "decision_heuristic|prompt_template": 0.008312320936312768,
+        "calibration_rule|prompt_template": 0.015229105159021072,
+        "decomposition_style|prompt_template": 0.010979230608045794,
+        "memory_structure|prompt_template": 0.004691880039522576,
+        "answer_format|prompt_template": 0.00250127189372449,
+        "prompt_template|tool_policy": 0.08686467017855559,
+        "prompt_template|temperature": 0.013697998574993835,
+        "prompt_template|risk_threshold": 0.012809224813723395,
+        "calibration_rule|decision_heuristic": 0.002483071991438322,
+        "decision_heuristic|decomposition_style": 0.013485242258989866,
+        "decision_heuristic|memory_structure": 0.003036424686102564,
+        "answer_format|decision_heuristic": 0.002090861006763444,
+        "decision_heuristic|tool_policy": 0.05884445657079174,
+        "decision_heuristic|temperature": 0.016512806640642634,
+        "decision_heuristic|risk_threshold": 0.01364617454126775,
+        "calibration_rule|decomposition_style": 0.003310224534360348,
+        "calibration_rule|memory_structure": 0.00877849338155046,
+        "answer_format|calibration_rule": 0.0036296806954525065,
+        "calibration_rule|tool_policy": 0.03804509116138288,
+        "calibration_rule|temperature": 0.010860784203588554,
+        "calibration_rule|risk_threshold": 0.007748753916317735,
+        "decomposition_style|memory_structure": 0.0054275548387560804,
+        "answer_format|decomposition_style": 0.0017254071973580487,
+        "decomposition_style|tool_policy": 0.0755288998841877,
+        "decomposition_style|temperature": 0.018217096073178007,
+        "decomposition_style|risk_threshold": 0.008012681672344875,
+        "answer_format|memory_structure": 0.001122068088984064,
+        "memory_structure|tool_policy": 0.09446783578528167,
+        "memory_structure|temperature": 0.011844858388810947,
+        "memory_structure|risk_threshold": 0.010901068719193819,
+        "answer_format|tool_policy": 0.04947399044620311,
+        "answer_format|temperature": 0.006664478165888929,
+        "answer_format|risk_threshold": 0.009411347299868596,
+        "temperature|tool_policy": 0.15569071360297387,
+        "risk_threshold|tool_policy": 0.12677977330988185,
+        "risk_threshold|temperature": 0.0324032063675007
       },
-      "total_variance": 0.0006423855103411576,
-      "n_samples": 2048,
+      "total_variance": 0.0005971966119753737,
+      "n_samples": 8192,
       "method": "saltelli_jansen",
       "sum_first_order": 1.0,
-      "sum_pairwise": 2.5444595354116872,
-      "interaction_fraction": 3.7040000102231536
+      "sum_pairwise": 0.9452287476329607,
+      "interaction_fraction": 6.778505250971133
     },
     "top_interactions": [
       {
-        "gene_a": "risk_threshold",
-        "gene_b": "tool_policy",
-        "strength": 0.288359256400249
-      },
-      {
         "gene_a": "temperature",
         "gene_b": "tool_policy",
-        "strength": 0.24593674072520702
+        "strength": 0.15569071360297387
+      },
+      {
+        "gene_a": "risk_threshold",
+        "gene_b": "tool_policy",
+        "strength": 0.12677977330988185
       },
       {
         "gene_a": "memory_structure",
         "gene_b": "tool_policy",
-        "strength": 0.20537704792612108
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "tool_policy",
-        "strength": 0.1925515365401764
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "tool_policy",
-        "strength": 0.18320858247615066
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "tool_policy",
-        "strength": 0.16143644250318143
+        "strength": 0.09446783578528167
       },
       {
         "gene_a": "prompt_template",
         "gene_b": "tool_policy",
-        "strength": 0.15784343744058293
+        "strength": 0.08686467017855559
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "tool_policy",
+        "strength": 0.0755288998841877
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "tool_policy",
+        "strength": 0.05884445657079174
       },
       {
         "gene_a": "answer_format",
         "gene_b": "tool_policy",
-        "strength": 0.14489563545927225
+        "strength": 0.04947399044620311
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "tool_policy",
+        "strength": 0.03804509116138288
       },
       {
         "gene_a": "risk_threshold",
         "gene_b": "temperature",
-        "strength": 0.08081871598245442
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "temperature",
-        "strength": 0.07592028148122887
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "risk_threshold",
-        "strength": 0.0664705648864106
-      },
-      {
-        "gene_a": "prompt_template",
-        "gene_b": "risk_threshold",
-        "strength": 0.05967207765614764
+        "strength": 0.0324032063675007
       },
       {
         "gene_a": "decomposition_style",
         "gene_b": "temperature",
-        "strength": 0.05514551350098621
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "risk_threshold",
-        "strength": 0.05286151974114129
+        "strength": 0.018217096073178007
       },
       {
         "gene_a": "decision_heuristic",
         "gene_b": "temperature",
-        "strength": 0.05244156641826272
+        "strength": 0.016512806640642634
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "prompt_template",
+        "strength": 0.015229105159021072
       },
       {
         "gene_a": "prompt_template",
         "gene_b": "temperature",
-        "strength": 0.05137342562932017
+        "strength": 0.013697998574993835
       },
       {
         "gene_a": "decision_heuristic",
         "gene_b": "risk_threshold",
-        "strength": 0.05083064729909617
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "temperature",
-        "strength": 0.04554461175333111
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "risk_threshold",
-        "strength": 0.03655767722186528
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "prompt_template",
-        "strength": 0.03141216839799695
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "memory_structure",
-        "strength": 0.02858468549764301
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "prompt_template",
-        "strength": 0.02785287673141606
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "risk_threshold",
-        "strength": 0.0260342574117328
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "prompt_template",
-        "strength": 0.02471195904280446
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "memory_structure",
-        "strength": 0.023538666756317043
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "memory_structure",
-        "strength": 0.021768458970195338
+        "strength": 0.01364617454126775
       },
       {
         "gene_a": "decision_heuristic",
         "gene_b": "decomposition_style",
-        "strength": 0.018927370289511074
+        "strength": 0.013485242258989866
+      },
+      {
+        "gene_a": "prompt_template",
+        "gene_b": "risk_threshold",
+        "strength": 0.012809224813723395
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "temperature",
+        "strength": 0.011844858388810947
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "prompt_template",
+        "strength": 0.010979230608045794
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "risk_threshold",
+        "strength": 0.010901068719193819
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "temperature",
+        "strength": 0.010860784203588554
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "risk_threshold",
+        "strength": 0.009411347299868596
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "memory_structure",
+        "strength": 0.00877849338155046
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "prompt_template",
+        "strength": 0.008312320936312768
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "risk_threshold",
+        "strength": 0.008012681672344875
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "risk_threshold",
+        "strength": 0.007748753916317735
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "temperature",
+        "strength": 0.006664478165888929
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "memory_structure",
+        "strength": 0.0054275548387560804
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "prompt_template",
+        "strength": 0.004691880039522576
       },
       {
         "gene_a": "answer_format",
         "gene_b": "calibration_rule",
-        "strength": 0.018787544216149706
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "temperature",
-        "strength": 0.018552547883452716
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "decision_heuristic",
-        "strength": 0.015329795834075607
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "prompt_template",
-        "strength": 0.015284597110515245
+        "strength": 0.0036296806954525065
       },
       {
         "gene_a": "calibration_rule",
         "gene_b": "decomposition_style",
-        "strength": 0.014937630088388457
+        "strength": 0.003310224534360348
       },
       {
-        "gene_a": "answer_format",
-        "gene_b": "decomposition_style",
-        "strength": 0.014427496402905346
+        "gene_a": "decision_heuristic",
+        "gene_b": "memory_structure",
+        "strength": 0.003036424686102564
       },
       {
         "gene_a": "answer_format",
         "gene_b": "prompt_template",
-        "strength": 0.013545400995591542
+        "strength": 0.00250127189372449
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "decision_heuristic",
+        "strength": 0.002483071991438322
       },
       {
         "gene_a": "answer_format",
         "gene_b": "decision_heuristic",
-        "strength": 0.013065467046626027
+        "strength": 0.002090861006763444
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "decomposition_style",
+        "strength": 0.0017254071973580487
       },
       {
         "gene_a": "answer_format",
         "gene_b": "memory_structure",
-        "strength": 0.01045333169518131
+        "strength": 0.001122068088984064
       }
     ],
     "h3_confirmed": true,
-    "notes": "First-order Sobol indices with negative raw values (clipped to 0 on display): calibration_rule=-5.2097, decomposition_style=-0.0385, answer_format=-1.2082, tool_policy=-3.7174, temperature=-0.7664, risk_threshold=-4.2936",
+    "notes": "First-order Sobol indices with negative raw values (clipped to 0 on display): decision_heuristic=-0.7718, calibration_rule=-1.6457, decomposition_style=-0.8595, memory_structure=-0.5501, answer_format=-1.1999, tool_policy=-0.9470, risk_threshold=-2.1459",
     "domain": "forecasting",
-    "wall_clock_seconds": 1.0310000000008586
+    "wall_clock_seconds": 6.813000000001921
   },
   "coding": {
     "indices": {
@@ -280,258 +280,258 @@
         "risk_threshold"
       ],
       "first_order": {
-        "prompt_template": -0.0013441816209968707,
-        "decision_heuristic": -0.09775626729955789,
-        "calibration_rule": 0.08199507888080997,
-        "decomposition_style": 0.14385378994903925,
-        "memory_structure": -0.17086920488083956,
-        "answer_format": -0.16823355464359074,
-        "tool_policy": -0.6566722566105381,
-        "temperature": -0.20323498979425492,
-        "risk_threshold": -0.3822747104105656
+        "prompt_template": 0.13786043853506538,
+        "decision_heuristic": 0.07304287804441183,
+        "calibration_rule": 0.16502824343112518,
+        "decomposition_style": 0.14093298789831024,
+        "memory_structure": -0.032173561155317554,
+        "answer_format": -0.08816305517406421,
+        "tool_policy": -0.2036629789651323,
+        "temperature": -0.11088374914963808,
+        "risk_threshold": -0.16801993623217937
       },
       "total_order": {
-        "prompt_template": 0.3123509096163551,
-        "decision_heuristic": 0.3408159321786421,
-        "calibration_rule": 0.24636740592683137,
-        "decomposition_style": 0.49663557420479104,
-        "memory_structure": 0.10296167651812431,
-        "answer_format": 0.08692374482446538,
-        "tool_policy": 0.42623735636787563,
-        "temperature": 0.15232740546179432,
-        "risk_threshold": 0.1451452585652913
+        "prompt_template": 0.3430707180766642,
+        "decision_heuristic": 0.35972349458965763,
+        "calibration_rule": 0.23790940835115573,
+        "decomposition_style": 0.4104536367677303,
+        "memory_structure": 0.13708495059769135,
+        "answer_format": 0.09561656008872996,
+        "tool_policy": 0.5628976588833645,
+        "temperature": 0.1833643065569967,
+        "risk_threshold": 0.1556047786376325
       },
       "pairwise": {
-        "decision_heuristic|prompt_template": 0.02235022686786778,
-        "calibration_rule|prompt_template": 0.005565113098600319,
-        "decomposition_style|prompt_template": 0.09974656057195808,
-        "memory_structure|prompt_template": 0.12270697124022607,
-        "answer_format|prompt_template": 0.023737845514543877,
-        "prompt_template|tool_policy": 0.12037793478505238,
-        "prompt_template|temperature": 0.1372501913511212,
-        "prompt_template|risk_threshold": 0.11282065377500661,
-        "calibration_rule|decision_heuristic": 0.03571316965524439,
-        "decision_heuristic|decomposition_style": 0.11983970746234862,
-        "decision_heuristic|memory_structure": 0.05752763910311447,
-        "answer_format|decision_heuristic": 0.05609688954268764,
-        "decision_heuristic|tool_policy": 0.18117877379029884,
-        "decision_heuristic|temperature": 0.13966670994678018,
-        "decision_heuristic|risk_threshold": 0.08963288204782369,
-        "calibration_rule|decomposition_style": 0.02986626873216902,
-        "calibration_rule|memory_structure": 0.04200105185455641,
-        "answer_format|calibration_rule": 0.00758835106385922,
-        "calibration_rule|tool_policy": 0.1811623063258347,
-        "calibration_rule|temperature": 0.09534331647547929,
-        "calibration_rule|risk_threshold": 0.11022335036458913,
-        "decomposition_style|memory_structure": 0.048079773871225764,
-        "answer_format|decomposition_style": 0.05187964928923254,
-        "decomposition_style|tool_policy": 0.04746009697454673,
-        "decomposition_style|temperature": 0.0501524452167012,
-        "decomposition_style|risk_threshold": 0.09782388251524493,
-        "answer_format|memory_structure": 0.016687549048429264,
-        "memory_structure|tool_policy": 0.2993868791038637,
-        "memory_structure|temperature": 0.1513215146095148,
-        "memory_structure|risk_threshold": 0.13390457950057727,
-        "answer_format|tool_policy": 0.20858025495034754,
-        "answer_format|temperature": 0.0689797376528755,
-        "answer_format|risk_threshold": 0.12214972680499786,
-        "temperature|tool_policy": 0.3461678711728555,
-        "risk_threshold|tool_policy": 0.35750718313746244,
-        "risk_threshold|temperature": 0.30431257756700564
+        "decision_heuristic|prompt_template": 0.030274329549623807,
+        "calibration_rule|prompt_template": 0.0061200069889689596,
+        "decomposition_style|prompt_template": 0.04348614575180815,
+        "memory_structure|prompt_template": 0.005004925253127054,
+        "answer_format|prompt_template": 0.0024310131185004483,
+        "prompt_template|tool_policy": 0.11677196529069658,
+        "prompt_template|temperature": 0.024067115015739972,
+        "prompt_template|risk_threshold": 0.016246992150959927,
+        "calibration_rule|decision_heuristic": 0.02603814403175521,
+        "decision_heuristic|decomposition_style": 0.09105938239849531,
+        "decision_heuristic|memory_structure": 0.011967886983341128,
+        "answer_format|decision_heuristic": 0.0009069132879144028,
+        "decision_heuristic|tool_policy": 0.08396728369322803,
+        "decision_heuristic|temperature": 0.025365080940060493,
+        "decision_heuristic|risk_threshold": 0.02950250676369115,
+        "calibration_rule|decomposition_style": 0.011431976618282214,
+        "calibration_rule|memory_structure": 0.01048425184226276,
+        "answer_format|calibration_rule": 0.003908981259572043,
+        "calibration_rule|tool_policy": 0.04698582494078554,
+        "calibration_rule|temperature": 0.01642547856600101,
+        "calibration_rule|risk_threshold": 0.033814212364656246,
+        "decomposition_style|memory_structure": 0.008379855569493014,
+        "answer_format|decomposition_style": 0.007221318272165662,
+        "decomposition_style|tool_policy": 0.09691930341840818,
+        "decomposition_style|temperature": 0.01979388577036751,
+        "decomposition_style|risk_threshold": 0.03079340812451742,
+        "answer_format|memory_structure": 0.004863157427627126,
+        "memory_structure|tool_policy": 0.1563361377762761,
+        "memory_structure|temperature": 0.02936219367520932,
+        "memory_structure|risk_threshold": 0.04535374179040471,
+        "answer_format|tool_policy": 0.08396370120425478,
+        "answer_format|temperature": 0.010490338876627182,
+        "answer_format|risk_threshold": 0.029137122295260214,
+        "temperature|tool_policy": 0.22511247064690018,
+        "risk_threshold|tool_policy": 0.21917527720906207,
+        "risk_threshold|temperature": 0.0678473099672004
       },
-      "total_variance": 0.007410410426987283,
-      "n_samples": 2048,
+      "total_variance": 0.006642743154643816,
+      "n_samples": 8192,
       "method": "saltelli_jansen",
-      "sum_first_order": 0.22584886882984923,
-      "sum_pairwise": 4.094789634984042,
-      "interaction_fraction": 2.083916394834321
+      "sum_first_order": 0.5168645479089126,
+      "sum_pairwise": 1.6710096388332438,
+      "interaction_fraction": 1.9688609646407107
     },
     "top_interactions": [
       {
-        "gene_a": "risk_threshold",
-        "gene_b": "tool_policy",
-        "strength": 0.35750718313746244
-      },
-      {
         "gene_a": "temperature",
         "gene_b": "tool_policy",
-        "strength": 0.3461678711728555
+        "strength": 0.22511247064690018
+      },
+      {
+        "gene_a": "risk_threshold",
+        "gene_b": "tool_policy",
+        "strength": 0.21917527720906207
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "tool_policy",
+        "strength": 0.1563361377762761
+      },
+      {
+        "gene_a": "prompt_template",
+        "gene_b": "tool_policy",
+        "strength": 0.11677196529069658
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "tool_policy",
+        "strength": 0.09691930341840818
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "decomposition_style",
+        "strength": 0.09105938239849531
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "tool_policy",
+        "strength": 0.08396728369322803
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "tool_policy",
+        "strength": 0.08396370120425478
       },
       {
         "gene_a": "risk_threshold",
         "gene_b": "temperature",
-        "strength": 0.30431257756700564
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "tool_policy",
-        "strength": 0.2993868791038637
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "tool_policy",
-        "strength": 0.20858025495034754
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "tool_policy",
-        "strength": 0.18117877379029884
+        "strength": 0.0678473099672004
       },
       {
         "gene_a": "calibration_rule",
         "gene_b": "tool_policy",
-        "strength": 0.1811623063258347
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "temperature",
-        "strength": 0.1513215146095148
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "temperature",
-        "strength": 0.13966670994678018
-      },
-      {
-        "gene_a": "prompt_template",
-        "gene_b": "temperature",
-        "strength": 0.1372501913511212
+        "strength": 0.04698582494078554
       },
       {
         "gene_a": "memory_structure",
         "gene_b": "risk_threshold",
-        "strength": 0.13390457950057727
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "prompt_template",
-        "strength": 0.12270697124022607
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "risk_threshold",
-        "strength": 0.12214972680499786
-      },
-      {
-        "gene_a": "prompt_template",
-        "gene_b": "tool_policy",
-        "strength": 0.12037793478505238
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "decomposition_style",
-        "strength": 0.11983970746234862
-      },
-      {
-        "gene_a": "prompt_template",
-        "gene_b": "risk_threshold",
-        "strength": 0.11282065377500661
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "risk_threshold",
-        "strength": 0.11022335036458913
+        "strength": 0.04535374179040471
       },
       {
         "gene_a": "decomposition_style",
         "gene_b": "prompt_template",
-        "strength": 0.09974656057195808
+        "strength": 0.04348614575180815
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "risk_threshold",
+        "strength": 0.033814212364656246
       },
       {
         "gene_a": "decomposition_style",
         "gene_b": "risk_threshold",
-        "strength": 0.09782388251524493
+        "strength": 0.03079340812451742
       },
       {
-        "gene_a": "calibration_rule",
-        "gene_b": "temperature",
-        "strength": 0.09534331647547929
+        "gene_a": "decision_heuristic",
+        "gene_b": "prompt_template",
+        "strength": 0.030274329549623807
       },
       {
         "gene_a": "decision_heuristic",
         "gene_b": "risk_threshold",
-        "strength": 0.08963288204782369
+        "strength": 0.02950250676369115
       },
       {
-        "gene_a": "answer_format",
+        "gene_a": "memory_structure",
         "gene_b": "temperature",
-        "strength": 0.0689797376528755
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "memory_structure",
-        "strength": 0.05752763910311447
+        "strength": 0.02936219367520932
       },
       {
         "gene_a": "answer_format",
-        "gene_b": "decision_heuristic",
-        "strength": 0.05609688954268764
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "decomposition_style",
-        "strength": 0.05187964928923254
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "temperature",
-        "strength": 0.0501524452167012
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "memory_structure",
-        "strength": 0.048079773871225764
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "tool_policy",
-        "strength": 0.04746009697454673
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "memory_structure",
-        "strength": 0.04200105185455641
+        "gene_b": "risk_threshold",
+        "strength": 0.029137122295260214
       },
       {
         "gene_a": "calibration_rule",
         "gene_b": "decision_heuristic",
-        "strength": 0.03571316965524439
+        "strength": 0.02603814403175521
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "temperature",
+        "strength": 0.025365080940060493
+      },
+      {
+        "gene_a": "prompt_template",
+        "gene_b": "temperature",
+        "strength": 0.024067115015739972
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "temperature",
+        "strength": 0.01979388577036751
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "temperature",
+        "strength": 0.01642547856600101
+      },
+      {
+        "gene_a": "prompt_template",
+        "gene_b": "risk_threshold",
+        "strength": 0.016246992150959927
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "memory_structure",
+        "strength": 0.011967886983341128
       },
       {
         "gene_a": "calibration_rule",
         "gene_b": "decomposition_style",
-        "strength": 0.02986626873216902
+        "strength": 0.011431976618282214
       },
       {
         "gene_a": "answer_format",
-        "gene_b": "prompt_template",
-        "strength": 0.023737845514543877
+        "gene_b": "temperature",
+        "strength": 0.010490338876627182
       },
       {
-        "gene_a": "decision_heuristic",
+        "gene_a": "calibration_rule",
+        "gene_b": "memory_structure",
+        "strength": 0.01048425184226276
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "memory_structure",
+        "strength": 0.008379855569493014
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "decomposition_style",
+        "strength": 0.007221318272165662
+      },
+      {
+        "gene_a": "calibration_rule",
         "gene_b": "prompt_template",
-        "strength": 0.02235022686786778
+        "strength": 0.0061200069889689596
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "prompt_template",
+        "strength": 0.005004925253127054
       },
       {
         "gene_a": "answer_format",
         "gene_b": "memory_structure",
-        "strength": 0.016687549048429264
+        "strength": 0.004863157427627126
       },
       {
         "gene_a": "answer_format",
         "gene_b": "calibration_rule",
-        "strength": 0.00758835106385922
+        "strength": 0.003908981259572043
       },
       {
-        "gene_a": "calibration_rule",
+        "gene_a": "answer_format",
         "gene_b": "prompt_template",
-        "strength": 0.005565113098600319
+        "strength": 0.0024310131185004483
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "decision_heuristic",
+        "strength": 0.0009069132879144028
       }
     ],
     "h3_confirmed": true,
-    "notes": "First-order Sobol indices with negative raw values (clipped to 0 on display): prompt_template=-0.0013, decision_heuristic=-0.0978, memory_structure=-0.1709, answer_format=-0.1682, tool_policy=-0.6567, temperature=-0.2032, risk_threshold=-0.3823",
+    "notes": "First-order Sobol indices with negative raw values (clipped to 0 on display): memory_structure=-0.0322, answer_format=-0.0882, tool_policy=-0.2037, temperature=-0.1109, risk_threshold=-0.1680",
     "domain": "coding",
-    "wall_clock_seconds": 0.9220000000004802
+    "wall_clock_seconds": 6.421999999998661
   },
   "knowledge": {
     "indices": {
@@ -547,257 +547,257 @@
         "risk_threshold"
       ],
       "first_order": {
-        "prompt_template": 0.7520852257268196,
-        "decision_heuristic": 0.13963949985457455,
-        "calibration_rule": -0.09090625158317937,
-        "decomposition_style": -0.23476305176893245,
-        "memory_structure": -0.10496391935377425,
-        "answer_format": -0.230545751437754,
-        "tool_policy": -0.2699072211954192,
-        "temperature": 0.11855299819868241,
-        "risk_threshold": -0.054824904305319604
+        "prompt_template": 0.32495936749460774,
+        "decision_heuristic": 0.3298536767073111,
+        "calibration_rule": 0.04917073441599668,
+        "decomposition_style": 0.13795122711154628,
+        "memory_structure": -0.34260164488923617,
+        "answer_format": 0.03960975827955292,
+        "tool_policy": 0.2733983890445002,
+        "temperature": 0.042796750325034154,
+        "risk_threshold": -0.10175610316643763
       },
       "total_order": {
-        "prompt_template": 0.5613695329724174,
-        "decision_heuristic": 0.6192402652946992,
-        "calibration_rule": 0.43906782336824307,
-        "decomposition_style": 0.5194308241234764,
-        "memory_structure": 0.4034550650160696,
-        "answer_format": 0.3432413880653554,
-        "tool_policy": 1.5336915537718885,
-        "temperature": 0.6297835161226453,
-        "risk_threshold": 0.41657555493529147
+        "prompt_template": 0.5928943416039971,
+        "decision_heuristic": 0.5763902756541834,
+        "calibration_rule": 0.39632522508449186,
+        "decomposition_style": 0.46245531002822815,
+        "memory_structure": 0.42409758433797146,
+        "answer_format": 0.3304227824297185,
+        "tool_policy": 1.5829675668760972,
+        "temperature": 0.523065069464613,
+        "risk_threshold": 0.4611463668666912
       },
       "pairwise": {
-        "decision_heuristic|prompt_template": 0.006274607949730393,
-        "calibration_rule|prompt_template": 0.042423876359199544,
-        "decomposition_style|prompt_template": 0.046297259449900464,
-        "memory_structure|prompt_template": 0.015822027933192682,
-        "answer_format|prompt_template": 0.01863841173029533,
-        "prompt_template|tool_policy": 0.11015663558643482,
-        "prompt_template|temperature": 0.03370434979639721,
-        "prompt_template|risk_threshold": 0.08315428248174045,
-        "calibration_rule|decision_heuristic": 0.01699351375407017,
-        "decision_heuristic|decomposition_style": 0.01567635844948679,
-        "decision_heuristic|memory_structure": 0.07072559091490502,
-        "answer_format|decision_heuristic": 0.03039671438351181,
-        "decision_heuristic|tool_policy": 0.15915013563319688,
-        "decision_heuristic|temperature": 0.036349757142625325,
-        "decision_heuristic|risk_threshold": 0.06937783431711952,
-        "calibration_rule|decomposition_style": 0.014891267105396504,
-        "calibration_rule|memory_structure": 0.013864178404782667,
-        "answer_format|calibration_rule": 0.011278362775640033,
-        "calibration_rule|tool_policy": 0.19110864768234695,
-        "calibration_rule|temperature": 0.05818690452616265,
-        "calibration_rule|risk_threshold": 0.052961979110279216,
-        "decomposition_style|memory_structure": 0.03922599200098868,
-        "answer_format|decomposition_style": 0.0244176211296818,
-        "decomposition_style|tool_policy": 0.15325892511315684,
-        "decomposition_style|temperature": 0.05995653925057752,
-        "decomposition_style|risk_threshold": 0.10614811205207886,
-        "answer_format|memory_structure": 0.014144563625092517,
-        "memory_structure|tool_policy": 0.22171094371482472,
-        "memory_structure|temperature": 0.09979299560311493,
-        "memory_structure|risk_threshold": 0.09637184272037519,
-        "answer_format|tool_policy": 0.16864288474874337,
-        "answer_format|temperature": 0.0476660533058441,
-        "answer_format|risk_threshold": 0.03930147557633851,
-        "temperature|tool_policy": 0.2541565293587771,
-        "risk_threshold|tool_policy": 0.3219352775843714,
-        "risk_threshold|temperature": 0.17362568881399007
+        "decision_heuristic|prompt_template": 0.006263412430505155,
+        "calibration_rule|prompt_template": 0.022930667811326168,
+        "decomposition_style|prompt_template": 0.022862397898714776,
+        "memory_structure|prompt_template": 0.004024556781590977,
+        "answer_format|prompt_template": 0.0038907519168750156,
+        "prompt_template|tool_policy": 0.09902950996791306,
+        "prompt_template|temperature": 0.01945436272381862,
+        "prompt_template|risk_threshold": 0.013632868137806835,
+        "calibration_rule|decision_heuristic": 0.003900264276260647,
+        "decision_heuristic|decomposition_style": 0.009585026916272416,
+        "decision_heuristic|memory_structure": 0.03759847668397196,
+        "answer_format|decision_heuristic": 0.001079816255922514,
+        "decision_heuristic|tool_policy": 0.04021330787431272,
+        "decision_heuristic|temperature": 0.012871544731272944,
+        "decision_heuristic|risk_threshold": 0.017004419981795076,
+        "calibration_rule|decomposition_style": 0.004808911909155278,
+        "calibration_rule|memory_structure": 0.004300646881271803,
+        "answer_format|calibration_rule": 0.0008270392243767454,
+        "calibration_rule|tool_policy": 0.039481724235282914,
+        "calibration_rule|temperature": 0.009080182043231924,
+        "calibration_rule|risk_threshold": 0.008114617981814724,
+        "decomposition_style|memory_structure": 0.00334662836441845,
+        "answer_format|decomposition_style": 0.004931043102680566,
+        "decomposition_style|tool_policy": 0.12213054951769924,
+        "decomposition_style|temperature": 0.02442189660555323,
+        "decomposition_style|risk_threshold": 0.016495313790758963,
+        "answer_format|memory_structure": 0.002038039796940583,
+        "memory_structure|tool_policy": 0.10862959730326675,
+        "memory_structure|temperature": 0.017184242983468705,
+        "memory_structure|risk_threshold": 0.023405880422248497,
+        "answer_format|tool_policy": 0.06088221323739142,
+        "answer_format|temperature": 0.007093672165222345,
+        "answer_format|risk_threshold": 0.012103227872549572,
+        "temperature|tool_policy": 0.19087664218507927,
+        "risk_threshold|tool_policy": 0.1804431086207627,
+        "risk_threshold|temperature": 0.05303210995036748
       },
-      "total_variance": 0.01042024732626061,
-      "n_samples": 2048,
+      "total_variance": 0.01072474829313185,
+      "n_samples": 8192,
       "method": "saltelli_jansen",
       "sum_first_order": 1.0,
-      "sum_pairwise": 2.9177881400843697,
-      "interaction_fraction": 4.455577799890008
+      "sum_pairwise": 1.2079686725818999,
+      "interaction_fraction": 4.152024618967442
     },
     "top_interactions": [
       {
-        "gene_a": "risk_threshold",
-        "gene_b": "tool_policy",
-        "strength": 0.3219352775843714
-      },
-      {
         "gene_a": "temperature",
         "gene_b": "tool_policy",
-        "strength": 0.2541565293587771
+        "strength": 0.19087664218507927
+      },
+      {
+        "gene_a": "risk_threshold",
+        "gene_b": "tool_policy",
+        "strength": 0.1804431086207627
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "tool_policy",
+        "strength": 0.12213054951769924
       },
       {
         "gene_a": "memory_structure",
         "gene_b": "tool_policy",
-        "strength": 0.22171094371482472
+        "strength": 0.10862959730326675
       },
       {
-        "gene_a": "calibration_rule",
+        "gene_a": "prompt_template",
         "gene_b": "tool_policy",
-        "strength": 0.19110864768234695
+        "strength": 0.09902950996791306
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "tool_policy",
+        "strength": 0.06088221323739142
       },
       {
         "gene_a": "risk_threshold",
         "gene_b": "temperature",
-        "strength": 0.17362568881399007
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "tool_policy",
-        "strength": 0.16864288474874337
+        "strength": 0.05303210995036748
       },
       {
         "gene_a": "decision_heuristic",
         "gene_b": "tool_policy",
-        "strength": 0.15915013563319688
+        "strength": 0.04021330787431272
       },
       {
-        "gene_a": "decomposition_style",
+        "gene_a": "calibration_rule",
         "gene_b": "tool_policy",
-        "strength": 0.15325892511315684
-      },
-      {
-        "gene_a": "prompt_template",
-        "gene_b": "tool_policy",
-        "strength": 0.11015663558643482
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "risk_threshold",
-        "strength": 0.10614811205207886
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "temperature",
-        "strength": 0.09979299560311493
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "risk_threshold",
-        "strength": 0.09637184272037519
-      },
-      {
-        "gene_a": "prompt_template",
-        "gene_b": "risk_threshold",
-        "strength": 0.08315428248174045
+        "strength": 0.039481724235282914
       },
       {
         "gene_a": "decision_heuristic",
         "gene_b": "memory_structure",
-        "strength": 0.07072559091490502
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "risk_threshold",
-        "strength": 0.06937783431711952
+        "strength": 0.03759847668397196
       },
       {
         "gene_a": "decomposition_style",
         "gene_b": "temperature",
-        "strength": 0.05995653925057752
+        "strength": 0.02442189660555323
       },
       {
-        "gene_a": "calibration_rule",
-        "gene_b": "temperature",
-        "strength": 0.05818690452616265
-      },
-      {
-        "gene_a": "calibration_rule",
+        "gene_a": "memory_structure",
         "gene_b": "risk_threshold",
-        "strength": 0.052961979110279216
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "temperature",
-        "strength": 0.0476660533058441
-      },
-      {
-        "gene_a": "decomposition_style",
-        "gene_b": "prompt_template",
-        "strength": 0.046297259449900464
+        "strength": 0.023405880422248497
       },
       {
         "gene_a": "calibration_rule",
         "gene_b": "prompt_template",
-        "strength": 0.042423876359199544
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "risk_threshold",
-        "strength": 0.03930147557633851
+        "strength": 0.022930667811326168
       },
       {
         "gene_a": "decomposition_style",
-        "gene_b": "memory_structure",
-        "strength": 0.03922599200098868
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "temperature",
-        "strength": 0.036349757142625325
+        "gene_b": "prompt_template",
+        "strength": 0.022862397898714776
       },
       {
         "gene_a": "prompt_template",
         "gene_b": "temperature",
-        "strength": 0.03370434979639721
+        "strength": 0.01945436272381862
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "temperature",
+        "strength": 0.017184242983468705
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "risk_threshold",
+        "strength": 0.017004419981795076
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "risk_threshold",
+        "strength": 0.016495313790758963
+      },
+      {
+        "gene_a": "prompt_template",
+        "gene_b": "risk_threshold",
+        "strength": 0.013632868137806835
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "temperature",
+        "strength": 0.012871544731272944
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "risk_threshold",
+        "strength": 0.012103227872549572
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "decomposition_style",
+        "strength": 0.009585026916272416
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "temperature",
+        "strength": 0.009080182043231924
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "risk_threshold",
+        "strength": 0.008114617981814724
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "temperature",
+        "strength": 0.007093672165222345
+      },
+      {
+        "gene_a": "decision_heuristic",
+        "gene_b": "prompt_template",
+        "strength": 0.006263412430505155
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "decomposition_style",
+        "strength": 0.004931043102680566
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "decomposition_style",
+        "strength": 0.004808911909155278
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "memory_structure",
+        "strength": 0.004300646881271803
+      },
+      {
+        "gene_a": "memory_structure",
+        "gene_b": "prompt_template",
+        "strength": 0.004024556781590977
+      },
+      {
+        "gene_a": "calibration_rule",
+        "gene_b": "decision_heuristic",
+        "strength": 0.003900264276260647
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "prompt_template",
+        "strength": 0.0038907519168750156
+      },
+      {
+        "gene_a": "decomposition_style",
+        "gene_b": "memory_structure",
+        "strength": 0.00334662836441845
+      },
+      {
+        "gene_a": "answer_format",
+        "gene_b": "memory_structure",
+        "strength": 0.002038039796940583
       },
       {
         "gene_a": "answer_format",
         "gene_b": "decision_heuristic",
-        "strength": 0.03039671438351181
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "decomposition_style",
-        "strength": 0.0244176211296818
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "prompt_template",
-        "strength": 0.01863841173029533
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "decision_heuristic",
-        "strength": 0.01699351375407017
-      },
-      {
-        "gene_a": "memory_structure",
-        "gene_b": "prompt_template",
-        "strength": 0.015822027933192682
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "decomposition_style",
-        "strength": 0.01567635844948679
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "decomposition_style",
-        "strength": 0.014891267105396504
-      },
-      {
-        "gene_a": "answer_format",
-        "gene_b": "memory_structure",
-        "strength": 0.014144563625092517
-      },
-      {
-        "gene_a": "calibration_rule",
-        "gene_b": "memory_structure",
-        "strength": 0.013864178404782667
+        "strength": 0.001079816255922514
       },
       {
         "gene_a": "answer_format",
         "gene_b": "calibration_rule",
-        "strength": 0.011278362775640033
-      },
-      {
-        "gene_a": "decision_heuristic",
-        "gene_b": "prompt_template",
-        "strength": 0.006274607949730393
+        "strength": 0.0008270392243767454
       }
     ],
     "h3_confirmed": true,
-    "notes": "First-order Sobol indices with negative raw values (clipped to 0 on display): calibration_rule=-0.0909, decomposition_style=-0.2348, memory_structure=-0.1050, answer_format=-0.2305, tool_policy=-0.2699, risk_threshold=-0.0548",
+    "notes": "First-order Sobol indices with negative raw values (clipped to 0 on display): memory_structure=-0.3426, risk_threshold=-0.1018",
     "domain": "knowledge",
-    "wall_clock_seconds": 0.6099999999987631
+    "wall_clock_seconds": 4.061999999998079
   }
 }
