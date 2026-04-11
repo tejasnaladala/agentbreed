@@ -22,13 +22,13 @@
 
 #SBATCH --job-name=ab_tiny
 #SBATCH --account=stf-ckpt
-#SBATCH --partition=ckpt
+#SBATCH --partition=ckpt-g2
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
-#SBATCH --gpus=1
-#SBATCH --time=00:30:00
+#SBATCH --mem=64G
+#SBATCH --gres=gpu:h200:1
+#SBATCH --time=00:20:00
 #SBATCH --requeue
 #SBATCH --output=real_study/logs/smoke_tiny_%j.out
 #SBATCH --error=real_study/logs/smoke_tiny_%j.err
@@ -87,9 +87,10 @@ export PYTHONUNBUFFERED=1
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
-# Diagnostics
+# Diagnostics (skipping `vllm --version` — it triggers a full vllm import
+# which takes 60-120s on cold CUDA compile cache. The version is in pip list.)
 echo "[$(date -Is)] vllm binary: $(which vllm)" | tee -a "${HARNESS_LOG}"
-vllm --version 2>&1 | head -3 | tee -a "${HARNESS_LOG}"
+pip show vllm 2>&1 | grep -E "Name|Version|Location" | tee -a "${HARNESS_LOG}" || true
 echo "[$(date -Is)] HF_HOME=${HF_HOME:-unset}" | tee -a "${HARNESS_LOG}"
 echo "[$(date -Is)] HF_HUB_OFFLINE=${HF_HUB_OFFLINE}" | tee -a "${HARNESS_LOG}"
 echo "[$(date -Is)] HF cache contents:" | tee -a "${HARNESS_LOG}"
