@@ -8,3 +8,8 @@ results/
 lineage.jsonl
 .env
 genomes/
+.venv/
+.venv/
+real_study/logs/
+real_study/results/
+real_study/.venv/
