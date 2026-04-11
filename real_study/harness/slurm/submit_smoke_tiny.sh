@@ -78,12 +78,31 @@ source "${VENV}/bin/activate"
 echo "[$(date -Is)] venv: $(which python)" | tee -a "${HARNESS_LOG}"
 python --version 2>&1 | tee -a "${HARNESS_LOG}"
 
+# Force unbuffered Python output so vllm.log captures everything in real time,
+# even if vllm crashes before it would normally flush.
+export PYTHONUNBUFFERED=1
+
+# Force vllm + huggingface_hub to use ONLY the local cache.
+# Requires that the model is pre-downloaded on the login node into HF_HOME.
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+
+# Diagnostics
+echo "[$(date -Is)] vllm binary: $(which vllm)" | tee -a "${HARNESS_LOG}"
+vllm --version 2>&1 | head -3 | tee -a "${HARNESS_LOG}"
+echo "[$(date -Is)] HF_HOME=${HF_HOME:-unset}" | tee -a "${HARNESS_LOG}"
+echo "[$(date -Is)] HF_HUB_OFFLINE=${HF_HUB_OFFLINE}" | tee -a "${HARNESS_LOG}"
+echo "[$(date -Is)] HF cache contents:" | tee -a "${HARNESS_LOG}"
+find "${HF_HOME:-/gscratch/stf/naladala/cache/huggingface}" -maxdepth 4 -type d 2>&1 | head -20 | tee -a "${HARNESS_LOG}"
+
 # Start vLLM serving a tiny model
 MODEL="Qwen/Qwen2.5-0.5B-Instruct"
 PORT=8000
 echo "[$(date -Is)] starting vllm server for ${MODEL} on port ${PORT}" | tee -a "${HARNESS_LOG}"
 
-vllm serve "${MODEL}" \
+# Use stdbuf to force line-buffered output from vllm's stdio too, so the log
+# captures startup messages immediately.
+stdbuf -oL -eL vllm serve "${MODEL}" \
     --port "${PORT}" \
     --host 127.0.0.1 \
     --tensor-parallel-size 1 \
@@ -98,22 +117,38 @@ echo "[$(date -Is)] vllm started as PID ${VLLM_PID}" | tee -a "${HARNESS_LOG}"
 # Teardown hook: kill vllm no matter how we exit
 trap 'echo "[$(date -Is)] trap: killing vllm pid ${VLLM_PID}" | tee -a "${HARNESS_LOG}"; kill -TERM "${VLLM_PID}" 2>/dev/null || true; wait "${VLLM_PID}" 2>/dev/null || true' EXIT
 
-# Wait for vllm to be responsive
+# Wait for vllm to be responsive (10 min cap, 5-second poll)
 echo "[$(date -Is)] waiting for vllm /v1/models endpoint" | tee -a "${HARNESS_LOG}"
 READY=0
-for i in $(seq 1 60); do
+for i in $(seq 1 120); do
     if curl -sf "http://127.0.0.1:${PORT}/v1/models" > /dev/null 2>&1; then
         READY=1
-        echo "[$(date -Is)] vllm ready after ${i} probe(s)" | tee -a "${HARNESS_LOG}"
+        echo "[$(date -Is)] vllm ready after ${i} probe(s) (~$((i * 5)) s)" | tee -a "${HARNESS_LOG}"
         break
+    fi
+    # Every 12 polls (60 s), check if vllm is still alive and report
+    if [ $((i % 12)) -eq 0 ]; then
+        if kill -0 "${VLLM_PID}" 2>/dev/null; then
+            echo "[$(date -Is)] still waiting (~$((i * 5)) s elapsed, vllm PID ${VLLM_PID} alive)" | tee -a "${HARNESS_LOG}"
+            echo "[$(date -Is)] vllm.log size: $(stat -c%s "${VLLM_LOG}" 2>/dev/null || echo 0) bytes" | tee -a "${HARNESS_LOG}"
+            echo "[$(date -Is)] last 5 vllm.log lines:" | tee -a "${HARNESS_LOG}"
+            tail -5 "${VLLM_LOG}" 2>&1 | sed 's/^/    /' | tee -a "${HARNESS_LOG}"
+        else
+            echo "[$(date -Is)] FATAL: vllm PID ${VLLM_PID} is DEAD after ~$((i * 5)) s" | tee -a "${HARNESS_LOG}"
+            echo "--- full vllm.log ---" | tee -a "${HARNESS_LOG}"
+            cat "${VLLM_LOG}" 2>&1 | tee -a "${HARNESS_LOG}" || echo "vllm.log is empty" | tee -a "${HARNESS_LOG}"
+            exit 4
+        fi
     fi
     sleep 5
 done
 
 if [ "${READY}" -ne 1 ]; then
-    echo "[$(date -Is)] FATAL: vllm did not become ready within 5 minutes" | tee -a "${HARNESS_LOG}"
-    echo "--- last 30 lines of vllm.log ---" | tee -a "${HARNESS_LOG}"
-    tail -30 "${VLLM_LOG}" 2>&1 | tee -a "${HARNESS_LOG}" || true
+    echo "[$(date -Is)] FATAL: vllm did not become ready within 10 minutes" | tee -a "${HARNESS_LOG}"
+    echo "--- full vllm.log ---" | tee -a "${HARNESS_LOG}"
+    cat "${VLLM_LOG}" 2>&1 | tee -a "${HARNESS_LOG}" || echo "vllm.log is empty" | tee -a "${HARNESS_LOG}"
+    echo "--- last 50 lines of any python output anywhere ---" | tee -a "${HARNESS_LOG}"
+    find "${LOG_DIR}" -type f -name "*.log" -exec ls -la {} \; | tee -a "${HARNESS_LOG}"
     exit 3
 fi
 
