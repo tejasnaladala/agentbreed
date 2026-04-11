@@ -21,7 +21,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=128G
-#SBATCH --gpus=h200:1
+#SBATCH --gpus-per-node=h200:1
 #SBATCH --time=00:45:00
 #SBATCH --requeue
 #SBATCH --output=real_study/logs/smoke_qwen32b_%j.out
@@ -63,6 +63,22 @@ fi
 # Activate the venv
 VENV=/gscratch/stf/naladala/agentbreed/real_study_v1/.venv
 source "${VENV}/bin/activate"
+
+# Force unbuffered Python output so vllm.log captures everything in real time
+export PYTHONUNBUFFERED=1
+
+# Force vllm + huggingface_hub to use ONLY the local cache. Compute nodes on
+# Hyak ckpt queues have limited network egress, so we require the model to
+# be pre-downloaded on the login node before submitting this job.
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+
+# Diagnostics
+echo "[$(date -Is)] vllm binary: $(which vllm)" | tee -a "${HARNESS_LOG}"
+pip show vllm 2>&1 | grep -E "Name|Version" | tee -a "${HARNESS_LOG}" || true
+echo "[$(date -Is)] HF_HOME=${HF_HOME:-unset}" | tee -a "${HARNESS_LOG}"
+echo "[$(date -Is)] HF cache contents:" | tee -a "${HARNESS_LOG}"
+find "${HF_HOME:-/gscratch/stf/naladala/cache/huggingface}" -maxdepth 3 -type d 2>&1 | head -20 | tee -a "${HARNESS_LOG}"
 
 # Start vLLM
 MODEL="Qwen/Qwen3-32B"

@@ -27,7 +27,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64G
-#SBATCH --gres=gpu:h200:1
+#SBATCH --gpus-per-node=h200:1
 #SBATCH --time=00:20:00
 #SBATCH --requeue
 #SBATCH --output=real_study/logs/smoke_tiny_%j.out
