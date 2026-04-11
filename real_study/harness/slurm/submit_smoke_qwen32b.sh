@@ -29,9 +29,21 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+# Slurm copies batch scripts to a spool dir before running them.
+# Use SLURM_SUBMIT_DIR to locate the repo root.
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    REPO_ROOT="${SLURM_SUBMIT_DIR}"
+else
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+fi
 cd "${REPO_ROOT}"
+echo "[$(date -Is)] REPO_ROOT=${REPO_ROOT}"
+if [ ! -d "real_study" ]; then
+    echo "FATAL: real_study/ not found in REPO_ROOT=${REPO_ROOT}" >&2
+    ls -la "${REPO_ROOT}" >&2
+    exit 10
+fi
 
 LOG_DIR="real_study/logs/smoke_qwen32b_${SLURM_JOB_ID:-local}"
 mkdir -p "${LOG_DIR}"

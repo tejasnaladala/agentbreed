@@ -35,10 +35,27 @@
 
 set -euo pipefail
 
-# Resolve the repo root from the script path
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+# Slurm copies batch scripts to a spool dir before running them, so
+# ${BASH_SOURCE[0]} does NOT resolve to the original script location.
+# Use SLURM_SUBMIT_DIR (set by Slurm to the sbatch invocation directory)
+# as the repo root. If running outside Slurm (direct bash invocation),
+# fall back to the script's own directory.
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    REPO_ROOT="${SLURM_SUBMIT_DIR}"
+else
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+fi
 cd "${REPO_ROOT}"
+echo "[$(date -Is)] REPO_ROOT=${REPO_ROOT}"
+echo "[$(date -Is)] pwd=$(pwd)"
+# Sanity: the repo root must contain real_study/
+if [ ! -d "real_study" ]; then
+    echo "FATAL: real_study/ not found in REPO_ROOT=${REPO_ROOT}" >&2
+    echo "contents of REPO_ROOT:" >&2
+    ls -la "${REPO_ROOT}" >&2
+    exit 10
+fi
 
 # Log directory for this job
 LOG_DIR="real_study/logs/smoke_tiny_${SLURM_JOB_ID:-local}"
