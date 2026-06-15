@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import numpy as np
 
-from breed.experiment import ExperimentResult, RunResult
+from breed.experiment import RunResult
 from breed.paper_figures import (
     METHOD_LABELS,
     aggregate_curves_across_seeds,
@@ -35,10 +35,7 @@ from breed.paper_figures import (
     fig_fitness_curves,
 )
 from breed.stats import (
-    aggregate_seed_runs,
     bootstrap_ci,
-    cohens_d,
-    cohens_d_paired,
     holm_bonferroni,
     paired_t_test,
     wilcoxon_signed_rank,

@@ -32,7 +32,7 @@ import yaml
 
 from breed.arenas.base import Task
 from breed.datasets import load_builtin_questions, time_based_split
-from breed.experiment import ExperimentConfig, ExperimentResult, ExperimentRunner, RunResult
+from breed.experiment import ExperimentConfig, ExperimentRunner, RunResult
 from multi_domain_agent import (
     accuracy_scorer,
     build_coding_tasks,

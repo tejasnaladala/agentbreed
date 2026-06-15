@@ -22,7 +22,7 @@ Design principles
 This is still a synthetic agent -- it is NOT a real LLM. The purpose is
 to provide a controlled fitness landscape for algorithmic validation.
 Real-LLM experiments are scheduled for the full main-track phase but
-depend on compute resources the user must provide (see MANUAL_STEPS.md).
+depend on compute resources the user must provide.
 """
 
 from __future__ import annotations

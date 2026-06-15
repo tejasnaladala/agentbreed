@@ -26,7 +26,6 @@ from breed.genome import Gene, GeneType, Genome
 from breed.stats import brier_score
 from synthetic_agent import (
     DEFAULT_EFFECTS,
-    INTERACTION_BONUSES,
     _genome_skill,
     make_synthetic_agent,
 )
@@ -118,7 +117,6 @@ def build_test_genome(
 
 async def evaluate_genome(genome: Genome, agent, questions) -> tuple[float, float]:
     """Run a genome on the question set, return (mean_brier, mean_skill)."""
-    truth_lookup = {q.prompt: q.outcome for q in questions}
     preds = []
     outs = []
     for q in questions:

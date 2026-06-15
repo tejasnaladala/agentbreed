@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from breed.adapters.base import Adapter, AgentResult
-from breed.arenas.base import Arena, EvalResult, Task
+from breed.arenas.base import EvalResult, Task
 from breed.arenas.coding import CodingArena, extract_code
 from breed.arenas.custom import CustomArena
 from breed.arenas.forecasting import ForecastingArena, parse_probability

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from breed.adapters.base import Adapter, AgentResult
+from breed.adapters.base import AgentResult
 from breed.adapters.callable_adapter import CallableAdapter
 from breed.genome import Gene, GeneType, Genome
 
@@ -186,7 +186,6 @@ class TestAnthropicImportGuard:
         saved = sys.modules.get("anthropic")
         sys.modules["anthropic"] = None  # type: ignore[assignment]
         try:
-            import importlib
             import breed.adapters.anthropic_adapter as mod
 
             # Force re-evaluation of the guard.

@@ -6,7 +6,6 @@ Population.spawn with custom templates, and full breeding loops.
 
 from __future__ import annotations
 
-import hashlib
 from typing import Any
 
 import pytest
@@ -15,7 +14,6 @@ from breed.adapters.base import Adapter, AgentResult
 from breed.arenas.base import Arena, EvalResult, Task
 from breed.engine import BreedingConfig, BreedingEngine
 from breed.genome import (
-    Gene,
     GeneType,
     Genome,
     create_genome_from_template,
@@ -197,7 +195,6 @@ class TestMutateGene:
 
     def test_text_gene(self) -> None:
         genome = create_genome_from_template(FULL_TEMPLATE, seed=42)
-        original_val = genome.genes["agent_prompt"].value
 
         mutated = mutate_gene(
             genome,
@@ -214,7 +211,6 @@ class TestMutateGene:
 
     def test_float_gene(self) -> None:
         genome = create_genome_from_template(FULL_TEMPLATE, seed=42)
-        original_val = genome.genes["temperature"].value
 
         mutated = mutate_gene(genome, "temperature", seed=1)
 

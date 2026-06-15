@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 
 from breed.genome import Genome, create_random_genome
 from breed.lineage import LineageTracker

@@ -15,9 +15,7 @@ from __future__ import annotations
 
 import json
 import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
@@ -25,11 +23,8 @@ import numpy as np
 
 from breed.paper_figures import (
     METHOD_LABELS,
-    aggregate_curves_across_seeds,
     aggregate_scores_across_seeds,
     fig_ablation_bars,
-    fig_cost_performance,
-    fig_fitness_curves,
 )
 from breed.stats import bootstrap_ci, holm_bonferroni, paired_t_test
 

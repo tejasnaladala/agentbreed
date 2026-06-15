@@ -176,7 +176,7 @@ async def main():
     args = parser.parse_args()
 
     # Load and split the dataset
-    print(f"Loading built-in forecasting dataset...")
+    print("Loading built-in forecasting dataset...")
     full = load_builtin_questions()
     print(f"  Total: {len(full)} questions")
     print(f"  Categories: {full.category_counts()}")

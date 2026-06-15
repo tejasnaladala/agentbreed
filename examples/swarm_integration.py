@@ -13,8 +13,6 @@ from breed.adapters import CallableAdapter
 from breed.arenas.base import Task
 from breed.arenas.custom import CustomArena
 from breed.engine import BreedingConfig, BreedingEngine
-from breed.genome import GeneType, create_genome_from_template
-from breed.population import Population
 
 # ---------------------------------------------------------------------------
 # Step 1: Define YOUR swarm's genome -- these are YOUR configuration knobs

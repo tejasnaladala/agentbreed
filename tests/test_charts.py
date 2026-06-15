@@ -7,14 +7,12 @@ handling are validated.
 
 from __future__ import annotations
 
-import json
-import sys
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from breed.genome import Genome, Gene, GeneType, create_random_genome
+from breed.genome import Genome, create_random_genome
 from breed.lineage import LineageTracker
 
 
