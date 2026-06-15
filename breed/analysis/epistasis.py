@@ -47,7 +47,7 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Sequence
 
 import numpy as np
@@ -671,7 +671,7 @@ def compute_sobol_indices(
     """
     layouts = _build_layouts(gene_template)
     d_eff = _effective_dim(layouts)
-    gene_names = tuple(l.name for l in layouts)
+    gene_names = tuple(layout.name for layout in layouts)
 
     first_order: dict[str, float] = {name: 0.0 for name in gene_names}
     total_order: dict[str, float] = {name: 0.0 for name in gene_names}
@@ -868,8 +868,8 @@ def compute_pairwise_interactions(
         Sorted gene-name tuples mapped to pairwise interaction estimates.
     """
     layouts = _build_layouts(gene_template)
-    gene_names = tuple(l.name for l in layouts)
-    layout_by_name = {l.name: l for l in layouts}
+    gene_names = tuple(layout.name for layout in layouts)
+    layout_by_name = {layout.name: layout for layout in layouts}
 
     pairwise: dict[tuple[str, str], float] = {}
 

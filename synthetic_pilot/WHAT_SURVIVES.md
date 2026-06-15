@@ -54,7 +54,7 @@ This is the **right question.** It survives unchanged.
 ## What does NOT survive
 
 ### The "preregistered main-track study" framing
-Dead. The pilot was not the main-track execution, will never be called that, and the abstract + intro + reproducibility section of `../paper/05_draft/paper_main_track.md` must not appear in the real-study paper verbatim.
+Dead. The pilot was not the main-track execution, will never be called that, and the abstract + intro + reproducibility section of the pilot draft (git history only) must not appear in the real-study paper verbatim.
 
 ### H1 / H2 / H3 confirmation claims from the pilot
 Dead. The pilot's "H1 confirmed at p = 1e-14" cannot be cited as evidence in the real study. The real study re-tests from scratch.

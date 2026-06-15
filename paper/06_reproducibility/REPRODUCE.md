@@ -1,10 +1,10 @@
 # Reproducibility Instructions
 
-This document explains how to reproduce every number, figure, and table in the papers from a fresh clone.
+This document explains how to reproduce every number, figure, and table from a fresh clone.
 
-> **Two papers in this repo.** Section 3–8 reproduce the **workshop draft** (`paper/05_draft/paper.md`, single-domain pilot). Section 12 below reproduces the **main-track draft** (`paper/05_draft/paper_main_track.md`, 3 domains × 10 methods × 20 seeds, preregistered H1/H2/H3). If you are here for the main-track paper, skip to §12.
+> **Two analyses in this package.** Sections 3–8 reproduce the single-domain workshop pilot. Section 12 reproduces the main-track analysis (3 domains × 10 methods × 20 seeds, preregistered H1/H2/H3). If you are here for the main-track numbers, skip to §12.
 >
-> For the explicit list of human-only steps (venue selection, author list, credentials, launch sequence), read `paper/06_reproducibility/MANUAL_STEPS.md`.
+> The paper drafts themselves are not in this repo — they target a blind submission and are kept out of the public tree. Everything below reproduces the numbers, figures, and tables the drafts reference, directly from the committed `breed` library and the scripts in `paper/03_experiments/`.
 
 ## 1. Environment
 
@@ -24,7 +24,7 @@ Requirements: Python 3.11+, ~500 MB disk. No GPU. No API keys.
 python -m pytest tests/ -q
 ```
 
-Expected: **422+ tests passing in ~10 seconds**. If any test fails, the pipeline below will not produce the paper's numbers.
+Expected: **431 tests passing in ~16 seconds**. If any test fails, the pipeline below will not produce the documented numbers.
 
 ## 3. Run the main experiment
 
@@ -153,9 +153,9 @@ Issues and questions: [REPO URL]/issues
 
 ---
 
-## 12. Main-track paper reproduction
+## 12. Main-track analysis reproduction
 
-`paper/05_draft/paper_main_track.md` is the main-track draft with preregistered H1/H2/H3 (locked 2026-04-10). It subsumes the workshop pipeline; the workshop numbers in §3–8 are preserved only for historical comparison.
+The main-track analysis has preregistered H1/H2/H3 (locked 2026-04-10 in `paper/01_corpus/preregistration.md`). It subsumes the workshop pipeline; the workshop numbers in §3–8 are preserved only for historical comparison.
 
 ### 12.1 Run every main-track experiment
 

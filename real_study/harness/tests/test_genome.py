@@ -19,7 +19,6 @@ from real_study.harness.genome import (
     GENE_NAMES,
     GENES,
     GeneCategory,
-    GeneScope,
     GeneType,
     Genome,
     default_genome_for,

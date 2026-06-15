@@ -11,7 +11,6 @@ Install the optional dependency with::
 
 from __future__ import annotations
 
-import os
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING

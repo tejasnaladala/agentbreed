@@ -164,6 +164,24 @@ async def my_pipeline(config, task):
 - Diversity preservation (novelty scoring, random immigrant injection)
 - Immutable JSONL lineage tracking
 
+## The research behind it
+
+breed started as the artifact for a preregistered study asking a narrow question: when you optimize an LLM agent's configuration, what actually moves the needle — the search *operator* (crossover vs mutation vs Bayesian optimization vs successive halving), or the richness of the configuration *space* itself?
+
+The pilot ran 700 preregistered runs (the headline set is 600: 3 domains × 10 methods × 20 seeds) against a deterministic synthetic agent built with explicit cross-component interactions, under matched compute budgets. Two findings held up:
+
+- Multi-component search beats prompt-only search by a wide margin (pooled paired *d_z* = 1.32, 95% CI on the mean difference [+0.206, +0.303], *p* ≈ 1e-14 across 60 seed-domain pairs).
+- Within multi-component methods, no operator pulled ahead of any other at Holm-corrected significance. Full evolution, mutation-only, crossover-only, random search, and Bayesian optimization were a wash.
+
+The takeaway: spend your effort defining a richer configuration space, not on a fancier search operator. A Sobol/Saltelli variance decomposition (`breed/analysis/epistasis.py`) confirms that pairwise gene interactions, not single genes acting alone, account for a real share of the fitness variance.
+
+Two things to be precise about:
+
+- **The pilot agent is synthetic** (a content-hash function with designed interaction structure), not a real LLM. The repo labels it that way everywhere. It tests the *search question*, not real-model performance.
+- **The real-LLM replication is designed, preregistered, and not yet run.** It lives in [`real_study/`](real_study/) as a locked preregistration plus a harness skeleton (benchmark fetch stubbed, one of the search methods wired up). Read its `README.md` before assuming any real-model result exists — none do yet.
+
+The `breed` library itself is finished and tested: 431 unit tests in `tests/` (plus 35 in `real_study/harness/`), all passing. Reproduction steps for every number above are in [`paper/06_reproducibility/REPRODUCE.md`](paper/06_reproducibility/REPRODUCE.md).
+
 ## Python API
 
 ```python
@@ -199,7 +217,7 @@ from breed.adapters import OpenAIAdapter             # pip install agentbreed[op
 ## Built-in arenas
 
 ```python
-from breed import ForecastingArena  # 32 built-in prediction questions, Brier score
+from breed import ForecastingArena  # 33 built-in prediction questions, Brier score
 from breed import CodingArena       # 15 coding problems with test cases
 from breed import CustomArena       # your tasks + your scorer
 ```

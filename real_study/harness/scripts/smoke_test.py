@@ -97,7 +97,7 @@ def main():
     out = Path(args.results_dir) / "smoke_summary.json"
     out.write_text(json.dumps(summary, indent=2))
     print(f"[smoke] wrote {out}")
-    print(f"[smoke] PASS")
+    print("[smoke] PASS")
 
 
 if __name__ == "__main__":

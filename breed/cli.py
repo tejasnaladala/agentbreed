@@ -524,7 +524,6 @@ async def _run_async(
         BreedingComplete,
         BreedingStarted,
         ChampionChanged,
-        CompositeObserver,
         EventBus,
         GenerationComplete,
         JSONObserver,
@@ -885,7 +884,6 @@ def results(config: str) -> None:
     console.print(table)
 
     # --- Overall stats -----------------------------------------------------
-    all_scores = [r.fitness_score for r in records]
     overall_best = max(records, key=lambda r: r.fitness_score)
 
     console.print()

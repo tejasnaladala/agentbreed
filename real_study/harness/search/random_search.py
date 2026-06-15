@@ -16,7 +16,7 @@ from __future__ import annotations
 import random
 from typing import List
 
-from ..genome import Genome, random_genome_for
+from ..genome import random_genome_for
 from .base import (
     EvaluatedGenome,
     FitnessFn,

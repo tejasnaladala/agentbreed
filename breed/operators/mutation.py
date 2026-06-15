@@ -6,8 +6,6 @@ genome is never modified.
 
 from __future__ import annotations
 
-import copy
-import math
 import random
 import uuid
 
@@ -15,7 +13,6 @@ from typing import Any
 
 from breed.genome import (
     DEFAULT_GENE_TEMPLATES,
-    Gene,
     GeneType,
     Genome,
 )

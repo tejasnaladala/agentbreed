@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-import traceback
 from typing import Any, Awaitable, Callable
 
 from breed.adapters.base import Adapter, AgentResult

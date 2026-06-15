@@ -75,7 +75,6 @@ Usage
 
 from __future__ import annotations
 
-import asyncio
 import json
 import math
 import random
@@ -90,9 +89,7 @@ import numpy as np
 from breed.adapters.callable_adapter import CallableAdapter
 from breed.arenas.base import Task
 from breed.arenas.custom import CustomArena
-from breed.engine import BreedingConfig, BreedingEngine
-from breed.events import CallbackObserver, EventBus, GenerationComplete
-from breed.genome import Gene, GeneType, Genome
+from breed.genome import GeneType, Genome
 from breed.population import Population
 
 

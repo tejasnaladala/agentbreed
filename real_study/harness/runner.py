@@ -21,7 +21,6 @@ Design goals:
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import os
@@ -29,7 +28,7 @@ import subprocess
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from .benchmarks.base import Benchmark, BenchmarkItem, BenchmarkSplits
 from .genome import Genome, genome_content_hash

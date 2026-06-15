@@ -26,11 +26,11 @@ paper/
 │   ├── figures/                     # PDF + PNG publication figures
 │   ├── tables/                      # Markdown tables
 │   └── logs/main_experiment/        # Raw per-run JSON + aggregated JSONL
-├── 05_draft/
-│   └── paper.md                     # Full paper draft
 └── 06_reproducibility/
     └── REPRODUCE.md                 # Step-by-step reproduction guide
 ```
+
+> The paper drafts target a blind submission and are kept out of the public tree. This package ships the literature corpus, the preregistration, the experimental scripts, and the raw results, so every number a draft cites is reproducible from the code here.
 
 ## Quick start
 
@@ -47,9 +47,6 @@ python -u paper/03_experiments/scripts/run_main_experiment.py \
 
 # Run the analysis (~5 seconds)
 python -u paper/03_experiments/scripts/analyze_results.py
-
-# View the paper
-cat paper/05_draft/paper.md
 ```
 
 ## What's in this package
@@ -58,17 +55,15 @@ cat paper/05_draft/paper.md
 
 2. **Experimental infrastructure** (`03_experiments/`): the scripts that turn the `breed` library into a publication-grade experimental pipeline, including the synthetic agent used for validation.
 
-3. **Results artifacts** (`04_results/`): the raw per-run JSON files, the aggregated JSONL, the publication figures (PDF + PNG), the summary tables, and the full statistical analysis JSON. These are the *canonical* versions that `paper.md` references.
+3. **Results artifacts** (`04_results/`): the raw per-run JSON files, the aggregated JSONL, the publication figures (PDF + PNG), the summary tables, and the full statistical analysis JSON. These are the *canonical* numbers the drafts cite.
 
-4. **Paper draft** (`05_draft/`): the full paper draft. Honest about scope, limitations, and what the experiments support versus what they do not.
-
-5. **Reproducibility guide** (`06_reproducibility/`): every step needed to go from a clean clone to the paper's numbers, figures, and tables.
+4. **Reproducibility guide** (`06_reproducibility/`): every step needed to go from a clean clone to the numbers, figures, and tables.
 
 ## Decision: is this worth pursuing as a paper?
 
 **Yes, as a workshop-track contribution with honest framing.** See `01_corpus/novelty_memo.md` for the full decision rationale. Summary:
 
-- The infrastructure is already built (422+ tests passing).
+- The infrastructure is already built (431 unit tests passing in the `breed` library, plus 35 in `real_study/harness/`).
 - The scientific question is genuinely open and under-studied.
 - The honest answer from preliminary experiments is "multi-component search beats single-component search; crossover versus mutation is a wash at our scale."
 - The released `breed` library is a useful community artifact regardless of the paper outcome.
@@ -81,4 +76,4 @@ cat paper/05_draft/paper.md
 - Comparisons against Halawi et al. 2024 or other SOTA forecasting systems.
 - Experiments on non-forecasting domains.
 
-These are identified as required follow-up work in the paper's Limitations section.
+These are identified as required follow-up work and are the subject of `../real_study/` (designed and preregistered, not yet executed).

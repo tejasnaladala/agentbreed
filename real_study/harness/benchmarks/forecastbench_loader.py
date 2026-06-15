@@ -22,7 +22,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence
 
 from .base import Benchmark, BenchmarkItem, BenchmarkScore, BenchmarkSplits
 

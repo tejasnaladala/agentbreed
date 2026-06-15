@@ -102,7 +102,7 @@ async def _run(args) -> dict:
             "ok": True,
             "count": 10,
         })
-        print(f"[smoke] genome round-trip: 10 random genomes validated")
+        print("[smoke] genome round-trip: 10 random genomes validated")
 
         # Step 3: toy random search (deterministic fitness, no real LLM)
         async def _toy_fitness(genome):

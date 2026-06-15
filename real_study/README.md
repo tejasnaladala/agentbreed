@@ -1,5 +1,12 @@
 # Real Study — Agent Configuration Search on Real LLMs
 
+> **Status: design + preregistration + harness skeleton. No real-LLM runs have been executed.**
+> The preregistration and study design are complete and locked. The harness is a skeleton: the
+> benchmark fetch in `harness/benchmarks/forecastbench_loader.py` is stubbed, only `random_search`
+> is implemented in `harness/search/`, and `results/` and `logs/` are empty. The only executed
+> empirical work in this repo is the synthetic pilot under `../paper/`, which is labeled synthetic.
+> Treat everything here as a plan, not a result.
+
 This directory contains the design, preregistration, harness, and (eventually) results of the NeurIPS-targeted real-LLM study on agent configuration search. It is intentionally isolated from `../paper/` (the synthetic pilot) so no pilot claim can silently leak into the real paper.
 
 ## Navigation

@@ -1,6 +1,6 @@
 # What Must Be Retested
 
-Every claim in `../paper/05_draft/paper_main_track.md` that does not survive into the real study must be either dropped or retested on real data. This is the disposition list.
+Every claim in the pilot main-track draft (kept in git history only, out of the public tree because it targets a blind submission) that does not survive into the real study must be either dropped or retested on real data. This is the disposition list.
 
 ## Claims that must be retested on real data
 

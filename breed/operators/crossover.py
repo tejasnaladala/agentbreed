@@ -9,7 +9,6 @@ All operators return a *new* Genome with:
 
 from __future__ import annotations
 
-import copy
 import random
 import uuid
 

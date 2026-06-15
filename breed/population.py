@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Literal, Sequence
 
 from breed.genome import (
-    GeneType,
     Genome,
     create_genome_from_template,
     create_random_genome,
@@ -27,9 +26,7 @@ from breed.operators.mutation import (
     mutate_gene,
     parameter_jitter,
     prompt_perturb_simple,
-    set_swap,
     strategy_mutation,
-    text_swap,
     tool_swap,
     vector_jitter,
 )

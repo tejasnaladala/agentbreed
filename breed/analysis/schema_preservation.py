@@ -21,11 +21,11 @@ the pilot diagnostics (landscape sanity).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Sequence
 
 import numpy as np
 
-from breed.genome import Gene, GeneType, Genome
+from breed.genome import GeneType, Genome
 
 
 # ---------------------------------------------------------------------------

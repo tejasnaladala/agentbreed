@@ -1,7 +1,5 @@
 # agentbreed Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Build `breed`, an open-source Python framework for evolving **any** AI agent through Darwinian selection. Provider-agnostic: works with Claude, OpenAI, local models, CrewAI, LangGraph, AutoGen, or any custom agent. Breeds, mutates, and optimizes whatever agents you're already running.
 
 **Architecture:** Provider-agnostic evolutionary optimization. The genome schema is a universal agent configuration (prompt, tools, memory, heuristics, etc.) that adapts to any agent framework via pluggable **adapters**. Adapters translate genomes into framework-specific configs (Claude Managed Agents, OpenAI Agents SDK, CrewAI crews, LangGraph graphs, raw API calls, or custom callables). Arenas define task domains and fitness functions. The breeding engine orchestrates the evolutionary loop. Lineage is tracked in an immutable log and visualized via CLI and web UI.

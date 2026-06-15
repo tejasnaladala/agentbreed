@@ -19,7 +19,6 @@ from .schema import (
     BENCHMARKS,
     GENES,
     GENE_NAMES,
-    GeneScope,
     GeneType,
     Genome,
     legal_values_for,

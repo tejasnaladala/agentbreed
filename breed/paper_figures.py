@@ -26,7 +26,6 @@ try:
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from matplotlib.figure import Figure
 
     _MATPLOTLIB_AVAILABLE = True
 except ImportError:
@@ -271,9 +270,9 @@ def fig_ablation_bars(
 
     fig, ax = plt.subplots(figsize=(width_inches, height_inches))
     x = np.arange(len(methods))
-    bars = ax.bar(x, means, yerr=[errs_low, errs_high],
-                  color=colors, edgecolor="black", linewidth=0.8,
-                  capsize=3, error_kw={"linewidth": 0.8})
+    ax.bar(x, means, yerr=[errs_low, errs_high],
+           color=colors, edgecolor="black", linewidth=0.8,
+           capsize=3, error_kw={"linewidth": 0.8})
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=30, ha="right")
