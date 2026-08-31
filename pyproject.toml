@@ -28,7 +28,7 @@ all = [
     "openai>=1.30",
     "matplotlib>=3.8",
 ]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff==0.16.5"]
 
 [project.scripts]
 breed = "breed.cli:main"
@@ -39,6 +39,10 @@ packages = ["breed"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+# Keep CI's lint contract explicit as Ruff adds new rule families.
+select = ["E4", "E7", "E9", "F"]
 
 [tool.ruff.lint.per-file-ignores]
 # __init__.py modules re-export the public API; unused-import is expected there.
