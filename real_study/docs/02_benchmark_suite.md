@@ -76,7 +76,7 @@
 **Scoring function:**
 - Primary metric: **pass@1** on a held-out test-case set. Each problem has reference test cases (typically 3–6).
 - Agent output: a single Python function or full program, extracted from the LLM response via fenced-block parsing.
-- Execution: sandboxed in a subprocess with 5-second timeout per test case.
+- Execution: not implemented. A subprocess and timeout are not a sandbox; this benchmark must remain disabled until submissions run in a disposable OS-level sandbox with no host secrets or network and strict process, filesystem, CPU, memory, PID, and wall-time limits.
 - Per-benchmark score = mean(pass@1) over the 40 test items.
 
 **Contamination concerns:** the release-date filter is the defense. We additionally exclude any problem whose text appears verbatim in the pretraining-data-probes we run at smoke-test time (a small set of `"<problem text>"` prompts to each model with temperature 0; if the model recites the problem, we drop it).
@@ -84,7 +84,7 @@
 **Evaluation protocol:**
 - Single LLM call per (genome, problem). The agent prompt includes the problem statement and output format instructions (specified by genes like `answer_format`).
 - No multi-turn for v1. An ablation with a fixed 2-turn reflection scaffold is deferred to exploratory.
-- Sandboxing: use the `restricted_python` or `subprocess.run(..., timeout=5, ...)` approach with no network, no filesystem writes outside `/tmp/lcb_sandbox/{run_id}`.
+- Sandboxing requirement: use a disposable OS-level sandbox with no host secrets or network, a read-only root, a dedicated temporary working directory, and strict process, filesystem, CPU, memory, PID, syscall, and wall-time limits. `RestrictedPython`, regex or AST filtering, and `subprocess.run(..., timeout=5, ...)` are not security boundaries.
 - Parse failures scored as 0 (complete failure).
 
 **Cost per run:** same as ForecastBench, 24,000 search calls + 40 test calls. Coding responses are longer (≈ 800 output tokens vs ≈ 200 for forecasting), so per-call wall clock is ~1.5× longer.

@@ -124,7 +124,7 @@ These are placeholders pending the SSH probe. The harness reads them from `real_
 - Model weights: `/gscratch/${group}/hf_cache/{qwen3-32b,llama-3.3-70b,qwen3-14b}`
 - Benchmark snapshots: `/gscratch/${group}/agentbreed/benchmarks/{forecastbench,livecodebench_v6,gpqa}`
 - Run logs: `/gscratch/${group}/agentbreed/results/{run_id}`
-- Temporary scratch: `/tmp/agentbreed_sandbox`
+- Temporary scratch: `/tmp/agentbreed_workdir` (a directory name is not an isolation boundary)
 
 ## Operational checks before any real run
 

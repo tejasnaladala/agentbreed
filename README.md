@@ -218,9 +218,16 @@ from breed.adapters import OpenAIAdapter             # pip install agentbreed[op
 
 ```python
 from breed import ForecastingArena  # 33 built-in prediction questions, Brier score
-from breed import CodingArena       # 15 coding problems with test cases
+from breed import CodingArena       # task generation only; evaluation is disabled
 from breed import CustomArena       # your tasks + your scorer
 ```
+
+`CodingArena.evaluate()` is intentionally disabled because it previously ran
+model-generated Python inside the coordinator process. Agent-generated code is
+not executed. The arena will remain disabled until evaluation runs in a
+disposable OS-level sandbox with no host secrets or network and strict process,
+filesystem, CPU, memory, and wall-time limits. A Python namespace, regex or AST
+filter, or subprocess timeout alone is not a sandbox.
 
 ## Events
 

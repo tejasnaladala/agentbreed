@@ -184,7 +184,7 @@ This order is chosen to place the most impactful genes first so the sweep at K=3
 
 ## What we are NOT putting in the genome (v1)
 
-- **Real external tools** (web search, code execution beyond our sandbox, calculator). Too many failure modes. Belongs in v2.
+- **Real external tools** (web search, code execution, calculator). No execution sandbox exists in the current codebase, and these tools have too many failure modes. Belongs in a future version only after OS-level isolation is implemented and verified.
 - **Multi-turn dialogue with the LLM.** One call per item is the v1 rule.
 - **Fine-tuning or LoRA adapters as genes.** Out of scope.
 - **Prompt ensembles / self-consistency voting.** A gene that evolves "number of voters" would break budget matching. Out of scope for v1.
