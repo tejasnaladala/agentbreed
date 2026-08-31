@@ -1,8 +1,8 @@
-"""Coding arena: function implementation challenges with test-case validation.
+"""Coding tasks with execution disabled pending a real OS sandbox.
 
-Agents receive coding prompts and must produce working Python functions.
-Code is extracted, executed in a sandbox namespace, and tested against
-predefined cases.  Fitness is the pass rate across all test cases.
+Task generation and code extraction remain available, but this module does not
+execute model-generated Python. Evaluation fails closed until process,
+filesystem, environment, network, and resource isolation are implemented.
 """
 
 from __future__ import annotations
@@ -11,10 +11,20 @@ import random
 import re
 from typing import Any
 
-from breed.adapters.base import Adapter, AgentResult
+from breed.adapters.base import Adapter
 from breed.arenas.base import Arena, EvalResult, Task
-from breed.fitness import PassRateEvaluator
 from breed.genome import Genome
+
+
+_DISABLED_MESSAGE = (
+    "CodingArena is disabled: evaluating model-generated Python requires an "
+    "OS-level sandbox with process, filesystem, environment, network, and "
+    "resource isolation."
+)
+
+
+class CodingArenaDisabledError(RuntimeError):
+    """Raised whenever code evaluation is attempted while containment is active."""
 
 # ---------------------------------------------------------------------------
 # Built-in coding problems with test cases
@@ -218,7 +228,7 @@ def extract_code(text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Safe code execution
+# Disabled code execution
 # ---------------------------------------------------------------------------
 
 
@@ -228,43 +238,8 @@ def _run_test(
     args: list[Any],
     expected: Any,
 ) -> bool:
-    """Execute extracted code and check one test case.
-
-    Returns True if the function produces the expected output, False otherwise.
-    Catches all exceptions to prevent agent code from crashing the evaluator.
-
-    Note: Uses exec() intentionally -- agent-generated code must be run
-    dynamically.  The namespace is isolated to limit side effects.
-    """
-    namespace: dict[str, Any] = {}
-    try:
-        compiled = compile(code, "<agent-code>", "exec")
-        _do_exec(compiled, namespace)
-    except Exception:
-        return False
-
-    func = namespace.get(function_name)
-    if func is None or not callable(func):
-        return False
-
-    try:
-        result = func(*args)
-        return result == expected
-    except Exception:
-        return False
-
-
-def _do_exec(compiled: Any, namespace: dict[str, Any]) -> None:
-    """Run compiled code in the given namespace.
-
-    Separated into its own function so static analysis tools can audit
-    the single call site easily.  Uses dynamic execution intentionally
-    because agent-generated code must be run at runtime.
-    """
-    import builtins
-
-    runner = getattr(builtins, "exec")  # noqa: S102
-    runner(compiled, namespace)
+    """Reject a code-evaluation attempt without inspecting or executing it."""
+    raise CodingArenaDisabledError(_DISABLED_MESSAGE)
 
 
 # ---------------------------------------------------------------------------
@@ -273,11 +248,11 @@ def _do_exec(compiled: Any, namespace: dict[str, Any]) -> None:
 
 
 class CodingArena(Arena):
-    """Arena for evaluating coding ability via function implementation.
+    """Coding task provider whose evaluation path is currently disabled.
 
-    Agents receive a problem description and must produce a Python function.
-    The function is tested against predefined test cases.  Fitness equals
-    the fraction of tests passed (via PassRateEvaluator).
+    Problems can still be sampled for inspection, but ``evaluate`` fails before
+    calling an adapter or handling generated code. It will remain disabled until
+    code execution is moved into a real OS-level sandbox.
 
     Attributes:
         problems: The pool of coding problems to draw from.
@@ -293,7 +268,6 @@ class CodingArena(Arena):
         self.problems: list[dict[str, Any]] = (
             list(problems) if problems is not None else list(_BUILTIN_PROBLEMS)
         )
-        self._pass_rate = PassRateEvaluator()
 
     async def generate_tasks(self, count: int, seed: int | None = None) -> list[Task]:
         """Sample *count* coding tasks from the problem pool.
@@ -332,48 +306,14 @@ class CodingArena(Arena):
     async def evaluate(
         self, genome: Genome, adapter: Adapter, tasks: list[Task]
     ) -> EvalResult:
-        """Run the agent on each coding task, extract code, and test it.
+        """Reject evaluation before requesting or executing generated code.
 
         Args:
             genome: The genome defining the agent.
             adapter: Translates the genome into a runnable agent.
             tasks: The coding tasks to evaluate on.
 
-        Returns:
-            EvalResult with pass-rate fitness.
+        Raises:
+            CodingArenaDisabledError: Always, while OS-level isolation is absent.
         """
-        test_outcomes: list[float] = []
-        agent_results: list[AgentResult] = []
-        total_tokens = 0
-
-        for task in tasks:
-            result = await adapter.run(genome, task.prompt)
-            agent_results.append(result)
-            total_tokens += result.cost_tokens
-
-            if not result.success:
-                # Count all tests for this task as failed
-                num_tests = len(task.expected["tests"])
-                test_outcomes.extend([0.0] * num_tests)
-                continue
-
-            code = extract_code(result.output)
-            function_name: str = task.expected["function_name"]
-            tests: list[dict[str, Any]] = task.expected["tests"]
-
-            for tc in tests:
-                passed = _run_test(code, function_name, tc["args"], tc["expected"])
-                test_outcomes.append(1.0 if passed else 0.0)
-
-        if not test_outcomes:
-            fitness = 0.0
-        else:
-            fitness = self._pass_rate.evaluate(test_outcomes, [0.0] * len(test_outcomes))
-
-        return EvalResult(
-            genome_id=genome.genome_id,
-            fitness_score=fitness,
-            fitness_breakdown={"pass_rate": fitness},
-            task_results=agent_results,
-            cost_tokens=total_tokens,
-        )
+        raise CodingArenaDisabledError(_DISABLED_MESSAGE)

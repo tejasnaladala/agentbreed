@@ -1318,7 +1318,7 @@ git commit -m "feat: population management with spawn, select, breed, mutate, im
 **Files:**
 - Create: `breed/arenas/coding.py`
 
-(Implementation: CodingArena with HumanEval-style problems, code execution via sandbox, pass rate scoring)
+(Historical plan: CodingArena with HumanEval-style problems and pass-rate scoring. The shipped in-process executor was not a sandbox and is now disabled. Do not restore execution until a disposable OS-level sandbox provides process, filesystem, environment, network, and resource isolation.)
 
 ---
 
