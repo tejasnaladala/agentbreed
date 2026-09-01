@@ -1,9 +1,28 @@
-# breed
+# AgentBreed
 
-Evolve any AI agent through Darwinian selection. `pip install` and add 3 lines to your project.
+**700-evaluation deterministic synthetic pilot complete; real-LLM replication
+preregistered and pending.**
 
-```
-pip install agentbreed
+AgentBreed is a Python library and research package for searching typed agent
+configurations: prompts, tool sets, model choices, numeric parameters, and
+multi-component policies.
+
+## Research status
+
+The pilot comprises 600 E1 run records (3 synthetic domains x 10 methods x 20
+seeds) and 100 E2 gene-dropout records. It uses a content-hash agent with
+designed cross-gene interactions and contains no real-LLM outputs.
+
+[`real_study/`](real_study/) contains the locked preregistration and a harness
+skeleton. Its status states that no real-LLM runs have been executed, so the
+pilot statistics apply only to the synthetic setup.
+
+## Install from source
+
+```bash
+git clone https://github.com/tejasnaladala/agentbreed.git
+cd agentbreed
+python -m pip install -e .
 ```
 
 ## Quickstart
@@ -39,18 +58,20 @@ champion = await evolve(
 # champion.genes has the winning config
 ```
 
-That's it. breed spawns a population of agents with different configs, evaluates them on your tasks, keeps the fittest, breeds them, mutates the offspring, and repeats for N generations. You get back the champion genome.
+`evolve` creates a population of configurations, evaluates each one with the
+supplied tasks and scorer, applies selection, crossover, and mutation, and
+returns the highest-scoring genome.
 
 ## What it does
 
 ```
-Spawn 20 random agents
+Initialize 20 random genomes
     |
     v
 Evaluate all on your tasks  -->  Score with your scorer
     |
     v
-Kill bottom 60%
+Retain top 40%
     |
     v
 Breed survivors (crossover genes between top agents)
@@ -70,7 +91,7 @@ Return champion genome
 
 ## Define your genes
 
-A gene is any configuration knob you want breed to optimize. 5 types:
+Genes are typed configuration variables. Five types are implemented:
 
 | Type | What it is | Example |
 |------|-----------|---------|
@@ -114,9 +135,10 @@ genes = {
 }
 ```
 
-## Integrate with any framework
+## Framework integration
 
-breed doesn't care what agent framework you use. Your agent function gets a config dict and a task string, returns a result string.
+The integration boundary is an async callable that receives a configuration
+dictionary and a task string, then returns a result string.
 
 **CrewAI:**
 ```python
@@ -164,23 +186,32 @@ async def my_pipeline(config, task):
 - Diversity preservation (novelty scoring, random immigrant injection)
 - Immutable JSONL lineage tracking
 
-## The research behind it
+## Research package
 
-breed started as the artifact for a preregistered study asking a narrow question: when you optimize an LLM agent's configuration, what actually moves the needle — the search *operator* (crossover vs mutation vs Bayesian optimization vs successive halving), or the richness of the configuration *space* itself?
+The synthetic pilot studies search operators and configuration-space richness
+under matched compute budgets. Its 700 run-level evaluations use a
+deterministic content-hash agent with explicit cross-component interactions;
+they were exploratory and were not the preregistered real-LLM execution.
 
-The pilot ran 700 preregistered runs (the headline set is 600: 3 domains × 10 methods × 20 seeds) against a deterministic synthetic agent built with explicit cross-component interactions, under matched compute budgets. Two findings held up:
+Within that synthetic setup:
 
-- Multi-component search beats prompt-only search by a wide margin (pooled paired *d_z* = 1.32, 95% CI on the mean difference [+0.206, +0.303], *p* ≈ 1e-14 across 60 seed-domain pairs).
-- Within multi-component methods, no operator pulled ahead of any other at Holm-corrected significance. Full evolution, mutation-only, crossover-only, random search, and Bayesian optimization were a wash.
+- Multi-component search exceeded prompt-only search (pooled paired *d_z* =
+  1.32, 95% CI for the mean difference [+0.206, +0.303], *p* approximately
+  1e-14 across 60 seed-domain pairs).
+- Pairwise comparisons among full evolution, mutation-only, crossover-only,
+  random search, and Bayesian optimization did not reach Holm-corrected
+  significance. This result does not establish equivalence between operators.
 
-The takeaway: spend your effort defining a richer configuration space, not on a fancier search operator. A Sobol/Saltelli variance decomposition (`breed/analysis/epistasis.py`) confirms that pairwise gene interactions, not single genes acting alone, account for a real share of the fitness variance.
+The pilot's Sobol/Saltelli H3 output is retained for audit but is not treated as
+a valid result: `n_base = 512` produced variance shares above 1.0. The locked
+real-study protocol requires `n_base >= 2048`.
 
-Two things to be precise about:
-
-- **The pilot agent is synthetic** (a content-hash function with designed interaction structure), not a real LLM. The repo labels it that way everywhere. It tests the *search question*, not real-model performance.
-- **The real-LLM replication is designed, preregistered, and not yet run.** It lives in [`real_study/`](real_study/) as a locked preregistration plus a harness skeleton (benchmark fetch stubbed, one of the search methods wired up). Read its `README.md` before assuming any real-model result exists — none do yet.
-
-The `breed` library itself is finished and tested: 431 unit tests in `tests/` (plus 35 in `real_study/harness/`), all passing. Reproduction steps for every number above are in [`paper/06_reproducibility/REPRODUCE.md`](paper/06_reproducibility/REPRODUCE.md).
+[`synthetic_pilot/`](synthetic_pilot/) documents the scope correction and the
+claims that require replication. [`real_study/`](real_study/) contains the
+pending real-LLM study. Pilot reproduction commands and artifact paths are in
+[`paper/06_reproducibility/REPRODUCE.md`](paper/06_reproducibility/REPRODUCE.md).
+Library tests live in [`tests/`](tests/), with separate harness tests under
+[`real_study/harness/tests/`](real_study/harness/tests/).
 
 ## Python API
 
@@ -209,9 +240,9 @@ champion = await engine.run()
 ## Built-in adapters
 
 ```python
-from breed.adapters import CallableAdapter          # any async function
-from breed.adapters import AnthropicMessagesAdapter  # pip install agentbreed[anthropic]
-from breed.adapters import OpenAIAdapter             # pip install agentbreed[openai]
+from breed.adapters import CallableAdapter           # any async function
+from breed.adapters import AnthropicMessagesAdapter  # optional "anthropic" extra
+from breed.adapters import OpenAIAdapter              # optional "openai" extra
 ```
 
 ## Built-in arenas
@@ -247,7 +278,7 @@ from breed.events import AgentBorn, AgentDied, ChampionChanged
 ## CLI (optional)
 
 ```
-pip install agentbreed[cli]
+python -m pip install -e ".[cli]"
 breed init --arena forecasting
 breed run --generations 10
 breed results
@@ -260,12 +291,12 @@ breed export --format json
 ## Install
 
 ```bash
-pip install agentbreed              # core library (pydantic + pyyaml only)
-pip install agentbreed[anthropic]   # + Claude adapter
-pip install agentbreed[openai]      # + OpenAI adapter
-pip install agentbreed[cli]         # + terminal commands
-pip install agentbreed[charts]      # + matplotlib charts
-pip install agentbreed[all]         # everything
+python -m pip install -e .                 # core library
+python -m pip install -e ".[anthropic]"   # + Claude adapter
+python -m pip install -e ".[openai]"      # + OpenAI adapter
+python -m pip install -e ".[cli]"         # + terminal commands
+python -m pip install -e ".[charts]"      # + matplotlib charts
+python -m pip install -e ".[all]"         # all optional dependencies
 ```
 
 ## Examples
